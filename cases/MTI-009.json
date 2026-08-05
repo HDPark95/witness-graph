@@ -1,0 +1,38 @@
+{
+  "case_id": "MTI-009",
+  "title": "Active users jumped overnight with no release",
+  "symptom": "The active user count rose 31 percent between two consecutive days. No deploy, no campaign, no traffic change.",
+  "difficulty": "medium",
+  "seed": {
+    "operations": [
+      {
+        "op": "rename_field",
+        "target": "active_users_daily",
+        "params": {
+          "definition": "widened",
+          "added_event": "passive_view"
+        }
+      }
+    ]
+  },
+  "ground_truth": {
+    "verdict": "definition_change",
+    "root_cause_key": "metric_definition_widened",
+    "explanation": "The definition of an active user was widened to include a passive event type. Behaviour and collection are both unchanged; the question being asked changed."
+  },
+  "must_cite": [
+    "active_users_daily",
+    "metric_definition_history"
+  ],
+  "must_not_conclude": [
+    "bot_traffic_mixed",
+    "price_sensitivity"
+  ],
+  "distractors": [
+    "A bot-filtering rule was also edited that month."
+  ],
+  "provenance": {
+    "derived_from": "internal-incident-anonymized",
+    "anonymized": true
+  }
+}

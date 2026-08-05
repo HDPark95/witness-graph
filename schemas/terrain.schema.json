@@ -1,0 +1,33 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/HDPark95/witness-graph/main/schemas/terrain.schema.json",
+  "title": "Terrain map",
+  "description": "What feeds the affected metric, discovered before hypothesising. Anchoring on a story before reading the lineage is the most common way these investigations go wrong.",
+  "type": "object",
+  "required": ["metric_urn", "upstream", "owners"],
+  "additionalProperties": false,
+  "properties": {
+    "metric_urn": { "type": "string" },
+    "upstream": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["urn", "hops"],
+        "properties": {
+          "urn": { "type": "string" },
+          "hops": { "type": "integer", "minimum": 1 },
+          "platform": { "type": "string" },
+          "last_changed": { "type": "string" }
+        }
+      }
+    },
+    "owners": { "type": "array", "items": { "type": "string" } },
+    "recent_schema_changes": { "type": "array", "items": { "type": "string" } },
+    "assertions_failing": { "type": "array", "items": { "type": "string" } },
+    "blind_spots": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Parts of the path with no metadata coverage. Naming them early prevents the agent from mistaking absence of signal for absence of fault."
+    }
+  }
+}

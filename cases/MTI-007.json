@@ -1,0 +1,38 @@
+{
+  "case_id": "MTI-007",
+  "title": "A join is quietly returning fewer rows",
+  "symptom": "A customer enrichment table lost about 12 percent of its rows after a routine schema migration. No job failed.",
+  "difficulty": "hard",
+  "seed": {
+    "operations": [
+      {
+        "op": "change_collation",
+        "target": "customers_dim",
+        "params": {
+          "column": "customer_code"
+        }
+      }
+    ]
+  },
+  "ground_truth": {
+    "verdict": "upstream_data_defect",
+    "root_cause_key": "collation_join_break",
+    "explanation": "The migration changed the character collation on one join key, so keys differing only by case or width stopped matching. The join succeeds and silently drops rows."
+  },
+  "must_cite": [
+    "customers_dim",
+    "customer_enrichment",
+    "schema_migration_log"
+  ],
+  "must_not_conclude": [
+    "collector_dead",
+    "customer_churn"
+  ],
+  "distractors": [
+    "A genuine batch of test accounts was purged the same day."
+  ],
+  "provenance": {
+    "derived_from": "internal-incident-anonymized",
+    "anonymized": true
+  }
+}

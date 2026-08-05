@@ -1,0 +1,132 @@
+# Metric Truth Investigator — the DataHub submission graph.
+# Validates against schemas/graph.schema.json.
+#
+# Reading this file top to bottom tells you the whole method:
+# form competing hypotheses, gather witnesses for each in parallel, refuse to
+# advance until every hypothesis has been argued against, commit to one verdict,
+# and never touch anything outside the run without a human saying yes.
+
+version: 1
+name: metric-truth
+description: >
+  Decide whether a metric moved because customers behaved differently or because
+  the instrument that measures them broke.
+
+state_schema: ../schemas/state.json
+
+budget:
+  max_steps: 40
+  max_tool_calls: 60
+  max_wall_seconds: 900
+
+nodes:
+  - id: intake
+    type: transform
+    description: Load one benchmark case and expose only its symptom. The answer key stays sealed.
+    contract: ../schemas/symptom.schema.json
+    effects: [read]
+
+  - id: map_terrain
+    type: agent
+    description: >
+      Before hypothesising, walk the lineage around the affected metric and write
+      down what feeds it. Skipping this is how investigations anchor on the first
+      plausible story.
+    depends_on: [intake]
+    tools: [datahub.search, datahub.lineage, datahub.schema, datahub.ownership]
+    contract: ../schemas/terrain.schema.json
+    effects: [read]
+    retries: { max: 2, backoff_seconds: 2 }
+
+  - id: hypothesize
+    type: agent
+    description: Produce competing explanations spanning behaviour, instrument, and definition.
+    depends_on: [map_terrain]
+    fanout: 3
+    contract: ../schemas/hypothesis.schema.json
+    effects: [read]
+
+  - id: gather_witnesses
+    type: agent
+    description: >
+      One parallel investigation per hypothesis. Each must return witnesses with
+      resolvable source refs, and is explicitly asked to look for evidence that
+      would refute its own hypothesis.
+    depends_on: [hypothesize]
+    map_over: hypotheses
+    tools: [datahub.lineage, datahub.schema, datahub.assertion, warehouse.query]
+    contract: ../schemas/evidence.schema.json
+    effects: [read]
+    retries: { max: 2, backoff_seconds: 2 }
+    timeout_seconds: 120
+
+  - id: witness_gate
+    type: gate
+    description: The barrier that separates this from a chatbot.
+    depends_on: [gather_witnesses]
+    assert:
+      - every_hypothesis_has_at_least_one_witness
+      - every_witness_source_resolves
+      - at_least_one_hypothesis_refuted
+      - no_claim_without_source
+    on_fail:
+      route: gather_witnesses
+      max_loops: 2
+      otherwise: abort
+
+  - id: adjudicate
+    type: agent
+    description: Commit to one verdict and one root cause key, citing witnesses by id.
+    depends_on: [witness_gate]
+    contract: ../schemas/verdict.schema.json
+    effects: [read]
+
+  - id: citation_gate
+    type: gate
+    description: Every id cited in the verdict must exist in the witness ledger.
+    depends_on: [adjudicate]
+    assert:
+      - all_cited_witnesses_exist
+      - alternatives_rejected_have_refuting_witnesses
+    on_fail:
+      route: adjudicate
+      max_loops: 1
+      otherwise: abort
+
+  - id: propose_remediation
+    type: agent
+    description: Draft the fix. Drafting only. Nothing is applied here.
+    depends_on: [citation_gate]
+    contract: ../schemas/remediation.schema.json
+    effects: [read]
+
+  - id: human_approval
+    type: human
+    description: >
+      The only node in the graph permitted to authorise an external change.
+      It blocks indefinitely and has no auto-approve path, by design.
+    depends_on: [propose_remediation]
+    effects: [write, notify]
+
+  - id: write_back
+    type: tool
+    description: >
+      Return the finding to the graph so the next investigation starts ahead of
+      this one. Writes the verdict as a document on the affected dataset, tags it
+      with the root cause class, and records which upstream asset was implicated.
+      This is the difference between an agent that answers and an agent that
+      leaves the estate better than it found it. Runs only after approval.
+    depends_on: [human_approval]
+    tools:
+      - datahub.save_document
+      - datahub.update_description
+      - datahub.add_tags
+      - datahub.add_structured_properties
+    effects: [write]
+    retries: { max: 2, backoff_seconds: 2 }
+
+  - id: report
+    type: transform
+    description: Render the incident report and the run ledger into one reviewable artefact.
+    depends_on: [citation_gate]
+    effects: [read]

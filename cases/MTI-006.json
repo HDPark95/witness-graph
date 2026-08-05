@@ -1,0 +1,38 @@
+{
+  "case_id": "MTI-006",
+  "title": "The anomaly detector has reported nothing for a month",
+  "symptom": "A data quality detector has raised no alerts in 31 days, across a period that included two known incidents.",
+  "difficulty": "hard",
+  "seed": {
+    "operations": [
+      {
+        "op": "repoint_detector",
+        "target": "orders_quality_monitor",
+        "params": {
+          "to": "orders_legacy_deprecated"
+        }
+      }
+    ]
+  },
+  "ground_truth": {
+    "verdict": "instrument_failure",
+    "root_cause_key": "detector_misaimed",
+    "explanation": "The detector is pointed at a table that is no longer written to. Its silence measures its own irrelevance, not the health of the data."
+  },
+  "must_cite": [
+    "orders_quality_monitor",
+    "orders_legacy_deprecated",
+    "orders_current"
+  ],
+  "must_not_conclude": [
+    "freshness_window_too_wide",
+    "customer_behavior"
+  ],
+  "distractors": [
+    "The detector's own logs show healthy runs every hour."
+  ],
+  "provenance": {
+    "derived_from": "internal-incident-anonymized",
+    "anonymized": true
+  }
+}

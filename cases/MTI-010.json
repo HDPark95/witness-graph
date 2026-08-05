@@ -1,0 +1,39 @@
+{
+  "case_id": "MTI-010",
+  "title": "Weekend orders down, weekdays normal",
+  "symptom": "Weekend order volume has run 18 percent below the trailing average for three consecutive weekends. Weekdays are unaffected.",
+  "difficulty": "easy",
+  "seed": {
+    "operations": [
+      {
+        "op": "drop_rows",
+        "target": "orders",
+        "params": {
+          "share": 0.18,
+          "weekends_only": true,
+          "instruments": "healthy"
+        }
+      }
+    ]
+  },
+  "ground_truth": {
+    "verdict": "customer_behavior",
+    "root_cause_key": "seasonal_demand_shift",
+    "explanation": "A seasonal shift in weekend demand. Pipelines run on the same schedule all week and show no weekend-specific defect."
+  },
+  "must_cite": [
+    "orders",
+    "orders_ingest_job"
+  ],
+  "must_not_conclude": [
+    "collector_dead",
+    "freshness_window_too_wide"
+  ],
+  "distractors": [
+    "The ingest job's weekend runtime is genuinely shorter because volume is lower."
+  ],
+  "provenance": {
+    "derived_from": "internal-incident-anonymized",
+    "anonymized": true
+  }
+}

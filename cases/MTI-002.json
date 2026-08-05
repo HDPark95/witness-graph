@@ -1,0 +1,38 @@
+{
+  "case_id": "MTI-002",
+  "title": "Traffic up, conversion collapsed",
+  "symptom": "Sessions rose 38 percent week over week while the signup conversion rate fell by roughly a third. Absolute signups were flat.",
+  "difficulty": "medium",
+  "seed": {
+    "operations": [
+      {
+        "op": "inject_bot_traffic",
+        "target": "web_sessions",
+        "params": {
+          "share": 0.28,
+          "unflagged": true
+        }
+      }
+    ]
+  },
+  "ground_truth": {
+    "verdict": "instrument_failure",
+    "root_cause_key": "bot_traffic_mixed",
+    "explanation": "Automated internal traffic entered the sessions table without a flag separating it from human visits, inflating the denominator only."
+  },
+  "must_cite": [
+    "web_sessions",
+    "signup_conversion_daily"
+  ],
+  "must_not_conclude": [
+    "customer_churn",
+    "definition_change"
+  ],
+  "distractors": [
+    "A pricing page redesign shipped the same week."
+  ],
+  "provenance": {
+    "derived_from": "internal-incident-anonymized",
+    "anonymized": true
+  }
+}

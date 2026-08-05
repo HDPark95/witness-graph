@@ -1,0 +1,112 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/HDPark95/witness-graph/main/schemas/graph.schema.json",
+  "title": "Witness Graph definition",
+  "description": "Declarative definition of an agent execution graph. Domain-agnostic: the same runtime executes any graph that validates against this schema. Only `tools` and the case corpus change between hackathons.",
+  "type": "object",
+  "required": ["version", "name", "nodes"],
+  "additionalProperties": false,
+  "properties": {
+    "version": { "const": 1 },
+    "name": { "type": "string", "pattern": "^[a-z0-9][a-z0-9-]*$" },
+    "description": { "type": "string" },
+    "state_schema": {
+      "type": "string",
+      "description": "Path to the JSON Schema describing the shared blackboard for this graph."
+    },
+    "budget": {
+      "type": "object",
+      "description": "Hard ceilings. The runtime aborts the run when any is exceeded; an aborted run is scored as inconclusive, never as a crash.",
+      "additionalProperties": false,
+      "properties": {
+        "max_steps": { "type": "integer", "minimum": 1 },
+        "max_tokens": { "type": "integer", "minimum": 1 },
+        "max_wall_seconds": { "type": "integer", "minimum": 1 },
+        "max_tool_calls": { "type": "integer", "minimum": 1 }
+      }
+    },
+    "nodes": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/node" }
+    }
+  },
+  "$defs": {
+    "node": {
+      "type": "object",
+      "required": ["id", "type"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "type": "string", "pattern": "^[a-z0-9][a-z0-9_]*$" },
+        "type": {
+          "enum": ["transform", "agent", "tool", "gate", "human"],
+          "description": "transform = pure code. agent = LLM call. tool = single external call. gate = assertion barrier. human = blocking approval."
+        },
+        "description": { "type": "string" },
+        "depends_on": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Node ids that must reach status ok before this node starts. Empty means the node is a graph entry point."
+        },
+        "contract": {
+          "type": "string",
+          "description": "Path to the JSON Schema this node's output MUST validate against. A node whose output fails its contract is retried, then marked failed. This is what makes nodes composable across graphs."
+        },
+        "map_over": {
+          "type": "string",
+          "description": "Blackboard key holding an array. The runtime instantiates one parallel copy of this node per element."
+        },
+        "fanout": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Run this node N independent times and collect all outputs. Used for competing hypotheses and for adversarial verification."
+        },
+        "tools": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Allowlist of tool ids this node may call. A call to a tool outside this list is a hard failure, not a warning. This is the mechanism behind the unapproved-effect metric."
+        },
+        "effects": {
+          "type": "array",
+          "items": { "enum": ["read", "write", "notify"] },
+          "default": ["read"],
+          "description": "Declared side-effect class. Only a node with `write` or `notify` may change anything outside the run, and only after a `human` node upstream has approved."
+        },
+        "retries": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "max": { "type": "integer", "minimum": 0, "default": 1 },
+            "backoff_seconds": { "type": "number", "minimum": 0, "default": 2 }
+          }
+        },
+        "timeout_seconds": { "type": "integer", "minimum": 1 },
+        "assert": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Only for type=gate. Named predicates the runtime evaluates against the blackboard. Unknown predicate names fail closed."
+        },
+        "on_fail": {
+          "type": "object",
+          "additionalProperties": false,
+          "description": "Only for type=gate. Where to route when an assertion fails.",
+          "properties": {
+            "route": { "type": "string", "description": "Node id to re-enter." },
+            "max_loops": { "type": "integer", "minimum": 0, "default": 1 },
+            "otherwise": { "enum": ["abort", "continue"], "default": "abort" }
+          }
+        }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "type": { "const": "gate" } }, "required": ["type"] },
+          "then": { "required": ["assert"] }
+        },
+        {
+          "if": { "properties": { "type": { "const": "agent" } }, "required": ["type"] },
+          "then": { "required": ["contract"] }
+        }
+      ]
+    }
+  }
+}

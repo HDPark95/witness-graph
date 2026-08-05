@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/HDPark95/witness-graph/main/schemas/symptom.schema.json",
+  "title": "Reported symptom",
+  "description": "What the graph is allowed to know at the start. Deliberately thin, mirroring how these arrive in real life.",
+  "type": "object",
+  "required": ["case_id", "metric", "observed_change", "window"],
+  "additionalProperties": false,
+  "properties": {
+    "case_id": { "type": "string" },
+    "metric": { "type": "string" },
+    "observed_change": { "type": "string" },
+    "window": { "type": "object", "required": ["from", "to"], "properties": { "from": { "type": "string" }, "to": { "type": "string" } } },
+    "reported_by": { "type": "string" },
+    "notes": { "type": "string" }
+  }
+}

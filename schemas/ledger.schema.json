@@ -1,0 +1,76 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/HDPark95/witness-graph/main/schemas/ledger.schema.json",
+  "title": "Run ledger record",
+  "description": "One append-only JSONL line per node execution. The ledger is the single source of truth for scoring, for the demo video, and for replay. Nothing is measured from logs or from the model's own summary of what it did.",
+  "type": "object",
+  "required": ["run_id", "seq", "node_id", "status", "started_at", "effects"],
+  "additionalProperties": false,
+  "properties": {
+    "run_id": { "type": "string" },
+    "seq": { "type": "integer", "minimum": 0, "description": "Monotonic within a run. Replay reads records in seq order." },
+    "node_id": { "type": "string" },
+    "instance": {
+      "type": "string",
+      "description": "Set when the node was fanned out or mapped over, e.g. `h2`. Distinguishes parallel copies."
+    },
+    "attempt": { "type": "integer", "minimum": 1, "default": 1 },
+    "status": { "enum": ["ok", "failed", "retried", "skipped", "aborted", "gate_failed"] },
+    "started_at": { "type": "string", "format": "date-time" },
+    "ended_at": { "type": "string", "format": "date-time" },
+    "inputs_digest": {
+      "type": "string",
+      "description": "sha256 of the resolved inputs. Two records with the same digest and different outputs expose nondeterminism, which is worth knowing before the judges find it."
+    },
+    "output": { "description": "Node output, already validated against the node's contract." },
+    "contract_violations": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Schema errors seen before the final attempt. Kept rather than discarded, because retry-to-valid rate is itself a reported metric."
+    },
+    "tool_calls": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["tool", "allowed"],
+        "additionalProperties": false,
+        "properties": {
+          "tool": { "type": "string" },
+          "allowed": {
+            "type": "boolean",
+            "description": "False means the node called a tool outside its allowlist. Any false value in a run makes the run non-compliant regardless of whether the answer was right."
+          },
+          "ref": { "type": "string" },
+          "wall_ms": { "type": "integer" }
+        }
+      }
+    },
+    "effects": {
+      "type": "array",
+      "description": "External changes actually performed. The headline safety metric is that this array is empty for every node not preceded by an approved human node.",
+      "items": {
+        "type": "object",
+        "required": ["kind", "approved_by"],
+        "additionalProperties": false,
+        "properties": {
+          "kind": { "enum": ["write", "notify"] },
+          "target": { "type": "string" },
+          "approved_by": {
+            "type": ["string", "null"],
+            "description": "Ledger seq of the human approval that authorised this effect. Null means unapproved, which is the condition we assert never occurs."
+          }
+        }
+      }
+    },
+    "cost": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "tokens_in": { "type": "integer" },
+        "tokens_out": { "type": "integer" },
+        "wall_ms": { "type": "integer" }
+      }
+    },
+    "error": { "type": "string" }
+  }
+}

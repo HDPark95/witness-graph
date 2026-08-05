@@ -1,0 +1,58 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/HDPark95/witness-graph/main/schemas/evidence.schema.json",
+  "title": "Witness record",
+  "description": "The load-bearing type of the whole harness. Every factual claim an agent makes must exist here with a resolvable source before any downstream node may cite it. A verdict citing a claim that is absent from the witness ledger is mechanically detectable, which turns hallucination from a judgement call into a test failure.",
+  "type": "object",
+  "required": ["id", "claim", "source", "observation"],
+  "additionalProperties": false,
+  "properties": {
+    "id": { "type": "string", "pattern": "^e[0-9]+$" },
+    "claim": {
+      "type": "string",
+      "description": "One falsifiable sentence. Not an interpretation."
+    },
+    "source": {
+      "type": "object",
+      "required": ["kind", "ref"],
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "enum": [
+            "datahub_lineage",
+            "datahub_schema",
+            "datahub_ownership",
+            "datahub_assertion",
+            "warehouse_query",
+            "run_log",
+            "config"
+          ]
+        },
+        "ref": {
+          "type": "string",
+          "description": "A resolvable identifier. For DataHub this is a URN, e.g. urn:li:dataset:(urn:li:dataPlatform:postgres,events_daily,PROD). The scorer re-resolves every ref; an unresolvable ref invalidates the witness."
+        },
+        "query": {
+          "type": "string",
+          "description": "Exact query or API call issued, so a third party can reproduce the observation."
+        },
+        "retrieved_at": { "type": "string", "format": "date-time" }
+      }
+    },
+    "observation": {
+      "type": "string",
+      "description": "What was actually returned. Verbatim value or a faithful summary, not a conclusion."
+    },
+    "supports": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Hypothesis ids this witness makes more likely."
+    },
+    "refutes": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Hypothesis ids this witness makes less likely. A run where nothing is ever refuted is a confirmation-bias smell and the gate flags it."
+    },
+    "confidence": { "type": "number", "minimum": 0, "maximum": 1 }
+  }
+}

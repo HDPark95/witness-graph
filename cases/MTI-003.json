@@ -1,0 +1,38 @@
+{
+  "case_id": "MTI-003",
+  "title": "Daily totals exceed the weekly rollup",
+  "symptom": "Summing the daily signup table over a week gives a number about 9 percent higher than the weekly rollup for the same period.",
+  "difficulty": "medium",
+  "seed": {
+    "operations": [
+      {
+        "op": "shift_timezone",
+        "target": "events_daily",
+        "params": {
+          "column": "occurred_at",
+          "applied_to": "daily_only"
+        }
+      }
+    ]
+  },
+  "ground_truth": {
+    "verdict": "instrument_failure",
+    "root_cause_key": "tz_mismatch",
+    "explanation": "The daily job buckets on local time while the rollup buckets on UTC, so events near midnight fall into both days."
+  },
+  "must_cite": [
+    "events_daily",
+    "events_weekly_rollup"
+  ],
+  "must_not_conclude": [
+    "bot_traffic_mixed",
+    "collector_dead"
+  ],
+  "distractors": [
+    "A genuine marketing campaign started mid-window."
+  ],
+  "provenance": {
+    "derived_from": "internal-incident-anonymized",
+    "anonymized": true
+  }
+}

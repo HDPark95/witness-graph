@@ -1,0 +1,42 @@
+{
+  "case_id": "MTI-008",
+  "title": "Signups fell after a price change",
+  "symptom": "Signups fell 24 percent the week after a pricing page update and have not recovered.",
+  "difficulty": "medium",
+  "seed": {
+    "operations": [
+      {
+        "op": "drop_rows",
+        "target": "signups",
+        "params": {
+          "share": 0.24,
+          "from_day": 8,
+          "instruments": "healthy"
+        }
+      }
+    ]
+  },
+  "ground_truth": {
+    "verdict": "customer_behavior",
+    "root_cause_key": "price_sensitivity",
+    "explanation": "Collection is intact end to end. Visits held steady, the funnel's earlier steps are unchanged, and the drop is concentrated at the pricing step. Customers saw the new price and left."
+  },
+  "must_cite": [
+    "signups",
+    "web_sessions",
+    "pricing_page_events"
+  ],
+  "must_not_conclude": [
+    "collector_dead",
+    "bot_traffic_mixed",
+    "tz_mismatch"
+  ],
+  "distractors": [
+    "An unrelated schema migration ran the same week.",
+    "One collector logged a transient warning."
+  ],
+  "provenance": {
+    "derived_from": "internal-incident-anonymized",
+    "anonymized": true
+  }
+}

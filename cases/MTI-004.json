@@ -1,0 +1,38 @@
+{
+  "case_id": "MTI-004",
+  "title": "The freshness check never fires",
+  "symptom": "A nightly table is reported fresh every morning, but downstream consumers periodically see day-old numbers.",
+  "difficulty": "hard",
+  "seed": {
+    "operations": [
+      {
+        "op": "widen_freshness_window",
+        "target": "nightly_orders_snapshot",
+        "params": {
+          "cadence_hours": 24,
+          "window_hours": 36
+        }
+      }
+    ]
+  },
+  "ground_truth": {
+    "verdict": "instrument_failure",
+    "root_cause_key": "freshness_window_too_wide",
+    "explanation": "The freshness assertion tolerates a window wider than the refresh cadence, so a single skipped run cannot violate it."
+  },
+  "must_cite": [
+    "nightly_orders_snapshot",
+    "nightly_orders_freshness_assertion"
+  ],
+  "must_not_conclude": [
+    "collector_dead",
+    "upstream_schema_change"
+  ],
+  "distractors": [
+    "The upstream job's runtime genuinely grew by 20 minutes."
+  ],
+  "provenance": {
+    "derived_from": "internal-incident-anonymized",
+    "anonymized": true
+  }
+}

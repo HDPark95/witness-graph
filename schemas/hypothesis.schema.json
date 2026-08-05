@@ -1,0 +1,22 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/HDPark95/witness-graph/main/schemas/hypothesis.schema.json",
+  "title": "Hypothesis",
+  "description": "A candidate explanation. The graph requires hypotheses to span classes, so that the agent cannot investigate three flavours of the same guess.",
+  "type": "object",
+  "required": ["id", "class", "statement", "would_be_refuted_by"],
+  "additionalProperties": false,
+  "properties": {
+    "id": { "type": "string", "pattern": "^h[0-9]+$" },
+    "class": { "enum": ["customer_behavior", "instrument_failure", "definition_change", "upstream_data_defect"] },
+    "statement": { "type": "string", "description": "One falsifiable sentence." },
+    "would_be_confirmed_by": { "type": "array", "items": { "type": "string" } },
+    "would_be_refuted_by": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "type": "string" },
+      "description": "Stated BEFORE looking. A hypothesis whose author cannot say what would kill it is not a hypothesis, and the contract rejects it."
+    },
+    "prior": { "type": "number", "minimum": 0, "maximum": 1 }
+  }
+}

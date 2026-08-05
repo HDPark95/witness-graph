@@ -1,0 +1,39 @@
+{
+  "case_id": "MTI-001",
+  "title": "One channel's signups flatlined at zero",
+  "symptom": "Signups attributed to the affiliate channel dropped to zero on the 14th and have stayed there for 22 days.",
+  "difficulty": "easy",
+  "seed": {
+    "operations": [
+      {
+        "op": "stop_collector",
+        "target": "channel_events_raw",
+        "params": {
+          "channel": "affiliate",
+          "from_day": 14
+        }
+      }
+    ]
+  },
+  "ground_truth": {
+    "verdict": "instrument_failure",
+    "root_cause_key": "collector_dead",
+    "explanation": "The ingestion job for that channel stopped emitting. The zero measures missing collection, not missing customers."
+  },
+  "must_cite": [
+    "channel_events_raw",
+    "channel_ingest_job"
+  ],
+  "must_not_conclude": [
+    "customer_churn",
+    "tz_mismatch"
+  ],
+  "distractors": [
+    "A competitor launched a campaign in the same week.",
+    "Overall site traffic genuinely dipped 4 percent."
+  ],
+  "provenance": {
+    "derived_from": "internal-incident-anonymized",
+    "anonymized": true
+  }
+}

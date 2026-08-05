@@ -1,0 +1,41 @@
+{
+  "case_id": "MTI-011",
+  "title": "Checkout completion dropped for one browser",
+  "symptom": "Checkout completion fell 40 percent among users of one browser version. Other browsers are flat.",
+  "difficulty": "hard",
+  "seed": {
+    "operations": [
+      {
+        "op": "drop_rows",
+        "target": "checkout_completions",
+        "params": {
+          "segment": "browser_version",
+          "share": 0.4,
+          "instruments": "healthy"
+        }
+      }
+    ]
+  },
+  "ground_truth": {
+    "verdict": "customer_behavior",
+    "root_cause_key": "browser_specific_product_defect",
+    "explanation": "A real defect in the product surface for that browser version stopped customers completing. Measurement is intact; the customers genuinely could not finish."
+  },
+  "must_cite": [
+    "checkout_completions",
+    "checkout_events",
+    "web_sessions"
+  ],
+  "must_not_conclude": [
+    "collector_dead",
+    "bot_traffic_mixed",
+    "below_fold_unreachable"
+  ],
+  "distractors": [
+    "That browser version also changed its user agent string, which looks like a tracking break."
+  ],
+  "provenance": {
+    "derived_from": "internal-incident-anonymized",
+    "anonymized": true
+  }
+}

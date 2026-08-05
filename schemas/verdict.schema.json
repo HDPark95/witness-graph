@@ -1,0 +1,55 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/HDPark95/witness-graph/main/schemas/verdict.schema.json",
+  "title": "Adjudication",
+  "description": "The graph's answer. Deliberately narrow: the agent must commit to one class, name a root cause, and cite witnesses by id. Free-form prose is not accepted as an answer.",
+  "type": "object",
+  "required": ["case_id", "verdict", "root_cause_key", "cited_witnesses", "alternatives_rejected"],
+  "additionalProperties": false,
+  "properties": {
+    "case_id": { "type": "string" },
+    "verdict": {
+      "enum": [
+        "customer_behavior",
+        "instrument_failure",
+        "definition_change",
+        "upstream_data_defect",
+        "inconclusive"
+      ],
+      "description": "The central distinction this project exists to make. `customer_behavior` means the number moved because people acted differently. `instrument_failure` means the number moved because our measurement broke. Conflating these two is the failure mode we are attacking."
+    },
+    "root_cause_key": {
+      "type": "string",
+      "description": "Machine-comparable slug matched against the case's ground truth, e.g. `collector_dead`, `tz_mismatch`, `bot_traffic_mixed`, `freshness_window_too_wide`, `below_fold_unreachable`, `detector_misaimed`, `collation_join_break`. Prose explanations are scored separately and never substitute for this key."
+    },
+    "narrative": {
+      "type": "string",
+      "description": "Human-readable explanation. Every factual sentence here must trace to a cited witness."
+    },
+    "cited_witnesses": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "type": "string", "pattern": "^e[0-9]+$" },
+      "description": "Witness ids. The scorer intersects this with the case's `must_cite` set to compute citation recall, and verifies every id exists in the ledger to compute citation precision."
+    },
+    "alternatives_rejected": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["hypothesis", "refuted_by"],
+        "additionalProperties": false,
+        "properties": {
+          "hypothesis": { "type": "string" },
+          "refuted_by": {
+            "type": "array",
+            "items": { "type": "string", "pattern": "^e[0-9]+$" },
+            "description": "Witness ids that argue against this hypothesis. An empty list means the agent dismissed an alternative without evidence, which the gate rejects."
+          }
+        }
+      },
+      "description": "Forces the agent to show what it ruled out and why. A verdict with no rejected alternatives is a guess with a confident tone."
+    },
+    "confidence": { "type": "number", "minimum": 0, "maximum": 1 }
+  }
+}

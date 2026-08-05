@@ -1,0 +1,18 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/HDPark95/witness-graph/main/schemas/state.json",
+  "title": "Shared blackboard",
+  "description": "The only channel between nodes. Nodes never call each other directly, which is what makes any node replaceable without touching the rest of the graph.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "run_id": { "type": "string" },
+    "symptom": { "$ref": "./symptom.schema.json" },
+    "terrain": { "$ref": "./terrain.schema.json" },
+    "hypotheses": { "type": "array", "items": { "$ref": "./hypothesis.schema.json" } },
+    "witnesses": { "type": "array", "items": { "$ref": "./evidence.schema.json" } },
+    "verdict": { "$ref": "./verdict.schema.json" },
+    "remediation": { "$ref": "./remediation.schema.json" },
+    "approvals": { "type": "array", "items": { "type": "object" } }
+  }
+}

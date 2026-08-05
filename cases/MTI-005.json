@@ -1,0 +1,37 @@
+{
+  "case_id": "MTI-005",
+  "title": "Shipped feature, zero usage",
+  "symptom": "A new recommendation module was released on the 3rd. Deployment is confirmed, but the usage metric has never left zero.",
+  "difficulty": "medium",
+  "seed": {
+    "operations": [
+      {
+        "op": "repoint_detector",
+        "target": "feature_usage_events",
+        "params": {
+          "records": "deploy_marker_only"
+        }
+      }
+    ]
+  },
+  "ground_truth": {
+    "verdict": "instrument_failure",
+    "root_cause_key": "below_fold_unreachable",
+    "explanation": "The feature shipped but renders outside the first viewport, so almost nobody reaches it. Deployment was verified; reachability never was."
+  },
+  "must_cite": [
+    "feature_usage_events",
+    "release_deploy_log"
+  ],
+  "must_not_conclude": [
+    "collector_dead",
+    "customer_churn"
+  ],
+  "distractors": [
+    "The release note mentions a partial rollout flag."
+  ],
+  "provenance": {
+    "derived_from": "internal-incident-anonymized",
+    "anonymized": true
+  }
+}
