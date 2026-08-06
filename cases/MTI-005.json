@@ -29,9 +29,5 @@
   ],
   "distractors": [
     "The release note mentions a partial rollout flag."
-  ],
-  "provenance": {
-    "derived_from": "internal-incident-anonymized",
-    "anonymized": true
-  }
+  ]
 }

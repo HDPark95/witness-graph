@@ -34,9 +34,5 @@
   "distractors": [
     "An unrelated schema migration ran the same week.",
     "One collector logged a transient warning."
-  ],
-  "provenance": {
-    "derived_from": "internal-incident-anonymized",
-    "anonymized": true
-  }
+  ]
 }

@@ -30,9 +30,5 @@
   ],
   "distractors": [
     "The detector's own logs show healthy runs every hour."
-  ],
-  "provenance": {
-    "derived_from": "internal-incident-anonymized",
-    "anonymized": true
-  }
+  ]
 }

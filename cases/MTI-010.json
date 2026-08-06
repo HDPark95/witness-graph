@@ -31,9 +31,5 @@
   ],
   "distractors": [
     "The ingest job's weekend runtime is genuinely shorter because volume is lower."
-  ],
-  "provenance": {
-    "derived_from": "internal-incident-anonymized",
-    "anonymized": true
-  }
+  ]
 }

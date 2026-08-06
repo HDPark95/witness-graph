@@ -30,9 +30,5 @@
   ],
   "distractors": [
     "A genuine batch of test accounts was purged the same day."
-  ],
-  "provenance": {
-    "derived_from": "internal-incident-anonymized",
-    "anonymized": true
-  }
+  ]
 }

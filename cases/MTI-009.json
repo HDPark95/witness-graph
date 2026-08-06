@@ -30,9 +30,5 @@
   ],
   "distractors": [
     "A bot-filtering rule was also edited that month."
-  ],
-  "provenance": {
-    "derived_from": "internal-incident-anonymized",
-    "anonymized": true
-  }
+  ]
 }

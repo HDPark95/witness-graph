@@ -208,6 +208,10 @@ CASES = [
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--out", type=pathlib.Path, default=pathlib.Path("cases"))
+    # provenance names the internal incident a case was abstracted from, so it
+    # stays out of the corpus this repository publishes. Opt in when building a
+    # private copy for our own traceability.
+    ap.add_argument("--with-provenance", action="store_true")
     args = ap.parse_args()
     args.out.mkdir(parents=True, exist_ok=True)
 
@@ -229,8 +233,9 @@ def main() -> int:
             "must_cite": c["must_cite"],
             "must_not_conclude": c["must_not_conclude"],
             "distractors": c["distractors"],
-            "provenance": {"derived_from": "internal-incident-anonymized", "anonymized": True},
         }
+        if args.with_provenance:
+            doc["provenance"] = {"derived_from": "internal-incident-anonymized", "anonymized": True}
         path = args.out / f"{c['case_id']}.json"
         path.write_text(json.dumps(doc, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
         print(f"wrote {path}  [{key}, {c['difficulty']}]")

@@ -31,9 +31,5 @@
   "distractors": [
     "A competitor launched a campaign in the same week.",
     "Overall site traffic genuinely dipped 4 percent."
-  ],
-  "provenance": {
-    "derived_from": "internal-incident-anonymized",
-    "anonymized": true
-  }
+  ]
 }

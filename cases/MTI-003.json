@@ -30,9 +30,5 @@
   ],
   "distractors": [
     "A genuine marketing campaign started mid-window."
-  ],
-  "provenance": {
-    "derived_from": "internal-incident-anonymized",
-    "anonymized": true
-  }
+  ]
 }

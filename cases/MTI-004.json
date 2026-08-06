@@ -30,9 +30,5 @@
   ],
   "distractors": [
     "The upstream job's runtime genuinely grew by 20 minutes."
-  ],
-  "provenance": {
-    "derived_from": "internal-incident-anonymized",
-    "anonymized": true
-  }
+  ]
 }
