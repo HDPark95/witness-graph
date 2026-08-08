@@ -335,7 +335,13 @@ def _update_description(args: dict) -> tuple[object, str]:
 
 
 def _save_document(args: dict) -> tuple[object, str]:
-    """Attach the incident report to the dataset as institutional memory."""
+    """Attach the incident report to the dataset as institutional memory.
+
+    Registered but not yet driven by `write_back`. The report node records the
+    ledger path and does not render an artefact, so there is no stable url to
+    attach, and a link to nothing is worse than no link. Wire this in once the
+    report node produces a document.
+    """
     import datahub.metadata.schema_classes as models
     from datahub.emitter.mcp import MetadataChangeProposalWrapper
 
