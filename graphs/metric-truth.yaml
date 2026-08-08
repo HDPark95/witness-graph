@@ -14,10 +14,15 @@ description: >
 
 state_schema: ../schemas/state.json
 
+# Measured, not guessed, and raised twice as the harness got real. The first
+# ceiling (900s) cut every run off mid-evidence. The second (1800s) held until
+# the warehouse was connected, at which point investigations started writing
+# SQL and confirming things instead of giving up, which costs turns. Terrain
+# mapping runs ~460s and each parallel witness investigation ~470s.
 budget:
   max_steps: 40
-  max_tool_calls: 60
-  max_wall_seconds: 900
+  max_tool_calls: 80
+  max_wall_seconds: 3600
 
 nodes:
   - id: intake
@@ -97,6 +102,11 @@ nodes:
     type: agent
     description: Draft the fix. Drafting only. Nothing is applied here.
     depends_on: [citation_gate]
+    # blast_radius is supposed to be read from lineage rather than guessed, and
+    # the first full run caught this node asking for lineage it had never been
+    # granted. A node told to read something needs the tool to read it; the
+    # alternative is a node that guesses and calls it evidence.
+    tools: [datahub.lineage]
     contract: ../schemas/remediation.schema.json
     effects: [read]
 

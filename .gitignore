@@ -1,5 +1,12 @@
 .venv/
-runs/
 quickstart.log
 __pycache__/
 *.pyc
+
+# Seeded warehouses are rebuilt from the cases, so the bytes are derived data:
+#   python3 harness/warehouse.py --all --out warehouse/
+warehouse/
+*.db
+
+# Scratch logs from batch runs.
+/tmp-*.log

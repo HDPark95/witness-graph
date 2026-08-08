@@ -1,7 +1,7 @@
 {
   "case_id": "MTI-003",
   "title": "Daily totals exceed the weekly rollup",
-  "symptom": "Summing the daily signup table over a week gives a number about 9 percent higher than the weekly rollup for the same period.",
+  "symptom": "For the week of 2026-06-22, summing the daily signup table gives about a third more signups than the weekly rollup reports for the same week.",
   "difficulty": "medium",
   "seed": {
     "operations": [

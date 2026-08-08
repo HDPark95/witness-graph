@@ -13,8 +13,26 @@ from __future__ import annotations
 import argparse
 import json
 import pathlib
+import re
 import statistics
 import sys
+
+
+def logical_names(ref: str) -> set[str]:
+    """The short asset names carried inside a urn.
+
+    Cases cite logical names (`events_daily`) because that is the vocabulary an
+    incident report uses. Witnesses carry urns because that is what re-resolves
+    against the catalog. This function is the only place the two vocabularies
+    meet, and it exists because comparing them directly silently scored every
+    correct answer as a lucky guess.
+    """
+    names = set()
+    for tok in re.split(r"[(),]", ref):
+        tok = tok.strip()
+        if tok and ":" not in tok:
+            names.add(tok.split(".")[-1])
+    return names
 
 
 def load_jsonl(path: pathlib.Path) -> list[dict]:
@@ -74,7 +92,10 @@ def score_run(case: dict, ledger: list[dict]) -> dict:
 
     # Recall: did the investigation touch the sources a correct one cannot avoid?
     must_cite = set(case.get("must_cite", []))
-    citation_recall = len(must_cite & witness_refs) / len(must_cite) if must_cite else 1.0
+    touched = set()
+    for ref in witness_refs:
+        touched |= logical_names(ref)
+    citation_recall = len(must_cite & touched) / len(must_cite) if must_cite else 1.0
 
     # A right answer reached without touching the required sources is luck, and
     # is reported separately so it never inflates the headline accuracy.
