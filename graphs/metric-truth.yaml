@@ -58,6 +58,13 @@ nodes:
       One parallel investigation per hypothesis. Each must return witnesses with
       resolvable source refs, and is explicitly asked to look for evidence that
       would refute its own hypothesis.
+
+      Before you test how a number is produced, read the definition that
+      produces it. A derived model here is a view, so a bucketing or filtering
+      rule is written in the view text and is absent from the raw rows
+      underneath. A test run against the raw table cannot bear on a hypothesis
+      about the view, and a result that looks like a refutation is then no
+      evidence at all.
     depends_on: [hypothesize]
     map_over: hypotheses
     # warehouse.schema is granted because the derived models are views and the

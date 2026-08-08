@@ -19,14 +19,30 @@ import sys
 
 
 def logical_names(ref: str) -> set[str]:
-    """The short asset names carried inside a urn.
+    """The short asset names carried inside a source ref.
 
     Cases cite logical names (`events_daily`) because that is the vocabulary an
     incident report uses. Witnesses carry urns because that is what re-resolves
     against the catalog. This function is the only place the two vocabularies
     meet, and it exists because comparing them directly silently scored every
     correct answer as a lucky guess.
+
+    A warehouse ref needs its own branch, because every one of them contains a
+    colon and the urn parser below drops any token that has one. So no
+    observation of the warehouse could ever satisfy `must_cite`, and that
+    reaches the headline number: an investigation that read the view text,
+    found the defect written there and answered correctly was still recorded as
+    a lucky guess, since the only source it cited was the warehouse. The daily
+    and weekly models are views, so that is the path a correct MTI-003 run
+    takes.
+
+    `sqlite_master` is deliberately left nameless. It is the catalog of every
+    relation at once, and crediting it would let a single query satisfy
+    `must_cite` for any case in the corpus.
     """
+    if ref.startswith("warehouse://"):
+        relation = ref.rsplit("/", 1)[-1]
+        return set() if relation.startswith("sqlite_") else {relation}
     names = set()
     for tok in re.split(r"[(),]", ref):
         tok = tok.strip()

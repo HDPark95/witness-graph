@@ -204,7 +204,22 @@ def _warehouse_query(args: dict) -> tuple[object, str]:
         raise ToolError(f"query failed: {exc}") from exc
     # The ref names the table the observation came from, so the gate can check
     # it exists rather than taking the claim on faith.
-    return result, f"warehouse://{WAREHOUSE_DB.stem}/{_first_relation(sql)}"
+    relation = _first_relation(sql)
+    # sqlite keeps view text in sqlite_master, so a SELECT against it really
+    # does hand back the definition — and the witness built on it is then
+    # thrown out, because the gate resolves a ref against the case's relations
+    # and sqlite_master is not one of them. Reading it is fine; citing it is
+    # not. Say so at the point of contact rather than letting the run find out
+    # at a gate that reports it as an unresolvable source, which is the same
+    # verdict an invented one gets.
+    if relation.startswith("sqlite_"):
+        result["note"] = (
+            f"`warehouse://{WAREHOUSE_DB.stem}/{relation}` does not resolve at the "
+            "witness gate, so a witness sourced here is discarded as unresolvable. "
+            "Read the same definition with warehouse.schema instead: it returns the "
+            "view text under a ref that names the relation itself."
+        )
+    return result, f"warehouse://{WAREHOUSE_DB.stem}/{relation}"
 
 
 def _warehouse_schema(args: dict) -> tuple[object, str]:
@@ -271,7 +286,10 @@ SIGNATURES = {
     "warehouse.query": 'warehouse.query {"sql": "<single SELECT>"} -> up to 50 rows from the '
                        "warehouse this metric is built on. SQLite dialect, read-only. Use it to "
                        "confirm or kill a hypothesis with actual numbers. Cite the result with "
-                       "source.ref \"warehouse://<case>/<table>\" exactly as the tool returns it.",
+                       "source.ref \"warehouse://<case>/<table>\" exactly as the tool returns it. "
+                       "Rows say what happened, not how a number was computed; when the dispute is "
+                       "about the computation, read the definition with warehouse.schema before you "
+                       "design a test, or you will test the wrong relation.",
     "warehouse.schema": 'warehouse.schema {"relation": "<table or view>"} -> its columns and, '
                         "for a view, the SQL it is defined by. Read this before testing a theory "
                         "about how a number is computed: the daily and weekly models are views, "
