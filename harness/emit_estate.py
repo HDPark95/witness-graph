@@ -48,7 +48,15 @@ DATASETS: dict[str, tuple[str, str, list[str]]] = {
     "marts.customer_enrichment": (PLATFORM_DBT, "Customers joined to order history on customer_code.", ["raw.customers_dim", "staging.orders_current"]),
     "marts.checkout_completions": (PLATFORM_DBT, "Completed checkouts, segmentable by browser version.", ["raw.checkout_events"]),
     "marts.feature_adoption": (PLATFORM_DBT, "Usage per released feature.", ["raw.feature_usage_events", "raw.release_deploy_log"]),
+    "sandbox.writeback_demo": (PLATFORM_DBT, "Write-back demonstration target. No case cites this dataset.", []),
 }
+
+# A dataset no case references, so an approved write-back can be demonstrated
+# without touching evidence. Descriptions in this corpus are themselves answer
+# keys: MTI-003 turns on `staging.events_daily` saying it buckets on local time,
+# and a write against it would destroy the case while the corpus is being scored.
+# This one exists to be written to.
+SANDBOX_DATASET = "sandbox.writeback_demo"
 
 # job logical name -> (description, inputs, outputs)
 JOBS: dict[str, tuple[str, list[str], list[str]]] = {
