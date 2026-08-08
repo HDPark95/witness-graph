@@ -35,7 +35,7 @@ DATASETS: dict[str, tuple[str, str, list[str]]] = {
     "raw.release_deploy_log": (PLATFORM_PG, "Deploy records. Says a build shipped, not that anyone reached it.", []),
     "raw.schema_migration_log": (PLATFORM_PG, "Applied migrations, including collation and type changes.", []),
     "raw.metric_definition_history": (PLATFORM_PG, "Versioned definitions for every published metric.", []),
-    "legacy.orders_legacy_deprecated": (PLATFORM_PG, "Superseded orders table. Retained, no longer written to.", []),
+    "legacy.orders_legacy_deprecated": (PLATFORM_PG, "Superseded orders table. Retained, no longer written to. Monitored by the orders_quality_monitor check.", []),
     # --- staging -----------------------------------------------------------
     "staging.events_daily": (PLATFORM_DBT, "Daily event counts. Buckets on local time.", ["raw.channel_events_raw", "raw.web_sessions"]),
     "staging.events_weekly_rollup": (PLATFORM_DBT, "Weekly event counts. Buckets on UTC.", ["raw.channel_events_raw"]),
@@ -44,7 +44,14 @@ DATASETS: dict[str, tuple[str, str, list[str]]] = {
     "marts.signups": (PLATFORM_DBT, "Signups by day and channel.", ["staging.events_daily"]),
     "marts.signup_conversion_daily": (PLATFORM_DBT, "Signups divided by sessions. Sensitive to anything that moves the denominator.", ["marts.signups", "raw.web_sessions"]),
     "marts.active_users_daily": (PLATFORM_DBT, "Active users per day, per the current definition.", ["raw.web_sessions", "raw.metric_definition_history"]),
-    "marts.nightly_orders_snapshot": (PLATFORM_DBT, "Nightly snapshot of orders. Refreshed every 24 hours.", ["staging.orders_current"]),
+    # The monitor is named in the description because there is no path from a
+    # dataset to its checks through the tools an investigation has. GMS indexes
+    # assertions and answers a direct fetch by urn, but the MCP search tool does
+    # not return the assertion entity type and neither lineage nor schema
+    # mentions one, so an agent has no way to learn the urn exists. Naming it
+    # here is how the check becomes reachable, and it is what a real catalog
+    # description does anyway.
+    "marts.nightly_orders_snapshot": (PLATFORM_DBT, "Nightly snapshot of orders. Refreshed every 24 hours. Monitored by the nightly_orders_freshness_assertion check.", ["staging.orders_current"]),
     "marts.customer_enrichment": (PLATFORM_DBT, "Customers joined to order history on customer_code.", ["raw.customers_dim", "staging.orders_current"]),
     "marts.checkout_completions": (PLATFORM_DBT, "Completed checkouts, segmentable by browser version.", ["raw.checkout_events"]),
     "marts.feature_adoption": (PLATFORM_DBT, "Usage per released feature.", ["raw.feature_usage_events", "raw.release_deploy_log"]),
@@ -69,9 +76,15 @@ JOBS: dict[str, tuple[str, list[str], list[str]]] = {
 }
 
 # assertion logical name -> (description, dataset)
+# The window and the target are spelled out in the description because that is
+# the only part of an assertion an investigation can actually read. The
+# structured freshnessAssertion aspect does carry `fixedInterval 36 HOUR`, and a
+# direct GMS aspect fetch returns it, but the MCP get_entities response an agent
+# receives is trimmed to type and description. A tolerance that cannot be read
+# is a tolerance the agent has to guess.
 ASSERTIONS: dict[str, tuple[str, str]] = {
-    "nightly_orders_freshness_assertion": ("Freshness check on the nightly snapshot.", "marts.nightly_orders_snapshot"),
-    "orders_quality_monitor": ("Row-count and null-rate monitor for orders.", "legacy.orders_legacy_deprecated"),
+    "nightly_orders_freshness_assertion": ("Freshness check on marts.nightly_orders_snapshot. Passes as long as the snapshot changed within the last 36 hours.", "marts.nightly_orders_snapshot"),
+    "orders_quality_monitor": ("Row-count and null-rate monitor on legacy.orders_legacy_deprecated. Still scheduled against the superseded table.", "legacy.orders_legacy_deprecated"),
 }
 
 TAGS = [
