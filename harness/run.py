@@ -510,6 +510,13 @@ def main() -> int:
                     help="Stand in for the human approval node. Without it, nothing downstream of "
                          "human_approval runs, which is the default posture on purpose.")
     ap.add_argument("--model", default=MODEL)
+    ap.add_argument("--ablate", default="", metavar="TOOL[,TOOL...]",
+                    help="Revoke these tools from every node before the run. The point is to "
+                         "measure what a capability is worth instead of asserting it: "
+                         "--ablate datahub.lineage answers 'how much worse is this "
+                         "investigation without lineage' with a score difference. Revoked "
+                         "calls are refused by the same allowlist check as any other "
+                         "out-of-scope call, so the ledger records the attempt.")
     args = ap.parse_args()
     MODEL = args.model
 
@@ -517,6 +524,17 @@ def main() -> int:
     graph = yaml.safe_load(args.graph.read_text(encoding="utf-8"))
     graph_dir = args.graph.resolve().parent
     nodes = {n["id"]: n for n in graph["nodes"]}
+
+    ablated = [t.strip() for t in args.ablate.split(",") if t.strip()]
+    if ablated:
+        unknown = [t for t in ablated if t not in tools.REGISTRY]
+        if unknown:
+            ap.error(f"--ablate names tools that do not exist: {unknown}. "
+                     f"Known: {sorted(tools.REGISTRY)}")
+        for node in nodes.values():
+            if node.get("tools"):
+                node["tools"] = [t for t in node["tools"] if t not in ablated]
+        print(f"  ablated: {', '.join(ablated)}")
     order = [n["id"] for n in graph["nodes"]]  # authored in dependency order
 
     # Rebuilt per run from a fixed seed, so the rows an investigation sees are
