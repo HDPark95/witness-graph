@@ -64,15 +64,20 @@ def build(graph: dict, ledger: list[dict], case: dict | None) -> str:
 
     alerts = []
     if dangling:
-        alerts.append(("bad", "환각 인용", f"판정이 {', '.join(dangling)} 를 인용했지만 증인 원장에 없습니다"))
+        alerts.append(("bad", "Fabricated citation",
+                       f"The verdict cites {', '.join(dangling)}, absent from the witness ledger"))
     if unapproved:
-        alerts.append(("bad", "무승인 효과", f"승인 없이 바깥을 바꾼 행동 {len(unapproved)}건"))
+        alerts.append(("bad", "Unapproved effect",
+                       f"{len(unapproved)} action(s) changed something outside the run without approval"))
     if disallowed:
-        alerts.append(("bad", "허용 목록 위반", f"선언되지 않은 도구 호출 {len(disallowed)}건"))
+        alerts.append(("bad", "Allowlist violation",
+                       f"{len(disallowed)} call(s) to a tool this node never declared"))
     if not any(w.get("refutes") for w in witnesses if isinstance(w, dict)):
-        alerts.append(("warn", "반증 없음", "어떤 가설도 반박되지 않았습니다. 확증 편향 신호입니다"))
+        alerts.append(("warn", "Nothing refuted",
+                       "No hypothesis was argued against. That is a confirmation-bias signal"))
     if not alerts:
-        alerts.append(("ok", "위반 없음", "환각 인용, 무승인 효과, 도구 위반이 모두 0건입니다"))
+        alerts.append(("ok", "No violations",
+                       "Fabricated citations, unapproved effects and tool violations are all zero"))
 
     # --- nodes -------------------------------------------------------------
     rows = []
@@ -80,12 +85,12 @@ def build(graph: dict, ledger: list[dict], case: dict | None) -> str:
         nid = n["id"]
         recs = by_node.get(nid, [])
         if not recs:
-            state, cls = "미실행", "muted"
+            state, cls = "not reached", "muted"
         else:
             statuses = [r.get("status") for r in recs]
             state = "gate_failed" if "gate_failed" in statuses else ("failed" if "failed" in statuses else "ok")
             cls = STATUS_COLOR.get(state, "muted")
-            state = {"ok": "통과", "failed": "실패", "gate_failed": "게이트 차단"}[state]
+            state = {"ok": "passed", "failed": "failed", "gate_failed": "blocked by gate"}[state]
         eff = n.get("effects", ["read"])
         writes = "write" in eff or "notify" in eff
         ms = sum(r.get("cost", {}).get("wall_ms", 0) for r in recs)
@@ -122,16 +127,16 @@ def build(graph: dict, ledger: list[dict], case: dict | None) -> str:
     correct = v.get("root_cause_key") == truth.get("root_cause_key") if (v and truth) else None
     verdict_html = f"""
 <div class="grid">
-  <div class="card"><div class="k">에이전트 판정</div><div class="v">{esc(v.get('verdict','-'))}</div>
+  <div class="card"><div class="k">Agent verdict</div><div class="v">{esc(v.get('verdict','-'))}</div>
     <div class="n">{esc(v.get('root_cause_key','-'))}</div></div>
-  <div class="card"><div class="k">정답</div><div class="v">{esc(truth.get('verdict','-'))}</div>
+  <div class="card"><div class="k">Answer key</div><div class="v">{esc(truth.get('verdict','-'))}</div>
     <div class="n">{esc(truth.get('root_cause_key','-'))}</div></div>
-  <div class="card"><div class="k">결과</div>
-    <div class="v {'ok' if correct else 'bad' if correct is False else ''}">{'정답' if correct else '오답' if correct is False else '-'}</div>
-    <div class="n">인용 {len(cited)}건 중 유효 {len(cited & witness_ids)}건</div></div>
+  <div class="card"><div class="k">Outcome</div>
+    <div class="v {'ok' if correct else 'bad' if correct is False else ''}">{'correct' if correct else 'wrong' if correct is False else '-'}</div>
+    <div class="n">{len(cited & witness_ids)} of {len(cited)} citations resolve</div></div>
 </div>""" if verdict or case else ""
 
-    return f"""<!doctype html><html lang="ko"><head><meta charset="utf-8">
+    return f"""<!doctype html><html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Witness Graph run · {esc((case or {}).get('case_id','run'))}</title>
 <style>
@@ -140,7 +145,7 @@ def build(graph: dict, ledger: list[dict], case: dict | None) -> str:
 @media(prefers-color-scheme:dark){{:root{{--bg:#0f1115;--fg:#e6e8ec;--mut:#98a0ad;--line:#262a32;
 --soft:#161920;--ok:#5cc98e;--bad:#f0798c;--warn:#e0a06a}}}}
 *{{box-sizing:border-box}}
-body{{margin:0;background:var(--bg);color:var(--fg);font:15px/1.7 -apple-system,BlinkMacSystemFont,"Pretendard","Apple SD Gothic Neo",sans-serif}}
+body{{margin:0;background:var(--bg);color:var(--fg);font:15px/1.7 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}}
 .w{{max-width:1000px;margin:0 auto;padding:40px 20px 80px}}
 h1{{font-size:24px;margin:0 0 4px;letter-spacing:-.02em}}
 h2{{font-size:17px;margin:38px 0 10px;padding-top:18px;border-top:1px solid var(--line)}}
@@ -168,25 +173,25 @@ border-radius:0 8px 8px 0;padding:11px 15px;margin:9px 0;background:var(--soft);
 .card .n{{font-size:12px;color:var(--mut);font-family:var(--mono)}}
 </style></head><body><div class="w">
 <h1>{esc((case or {}).get('title','Run'))}</h1>
-<div class="sub">{esc((case or {}).get('case_id',''))} · 그래프 {esc(graph.get('name',''))} · 원장 기록 {len(ledger)}건</div>
+<div class="sub">{esc((case or {}).get('case_id',''))} · graph {esc(graph.get('name',''))} · {len(ledger)} ledger records</div>
 
-<h2>이 실행에서 잡힌 것</h2>
+<h2>What this run caught</h2>
 {alert_html}
 
-<h2>판정</h2>
+<h2>Adjudication</h2>
 {verdict_html}
 
-<h2>그래프 실행</h2>
+<h2>Graph execution</h2>
 <div class="tw"><table>
-<thead><tr><th>노드</th><th>타입</th><th>상태</th><th>기록</th><th>도구</th><th>ms</th></tr></thead>
+<thead><tr><th>Node</th><th>Kind</th><th>State</th><th>Records</th><th>Tools</th><th>ms</th></tr></thead>
 <tbody>{''.join(rows)}</tbody></table></div>
 
-<h2>증인 원장</h2>
+<h2>Witness ledger</h2>
 <div class="tw"><table>
-<thead><tr><th>id</th><th>주장</th><th>출처</th><th>지지</th><th>반박</th></tr></thead>
-<tbody>{''.join(wrows) or '<tr><td colspan=5 class="muted">증인 없음</td></tr>'}</tbody></table></div>
+<thead><tr><th>id</th><th>Claim</th><th>Source</th><th>Supports</th><th>Refutes</th></tr></thead>
+<tbody>{''.join(wrows) or '<tr><td colspan=5 class="muted">No witnesses</td></tr>'}</tbody></table></div>
 
-<p class="sub" style="margin-top:30px">이 페이지는 실행 원장에서만 생성됩니다. 에이전트가 자기 실행을 요약한 내용은 읽지 않습니다.</p>
+<p class="sub" style="margin-top:30px">This page is built from the run ledger alone. It never reads the agent's own summary of what it did.</p>
 </div></body></html>"""
 
 
