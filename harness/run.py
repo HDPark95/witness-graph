@@ -680,10 +680,56 @@ def main() -> int:
                     ledger.write(node_id=nid, status="skipped", started_at=now(),
                                  ended_at=now(), effects=[], error="no upstream approval")
                 else:
-                    ledger.write(node_id=nid, status="skipped", started_at=now(),
-                                 ended_at=now(), effects=[],
-                                 error="write tools are not connected in this run")
-                    print("  write_back skipped (write tools not connected)")
+                    started = now()
+                    verdict = state.get("verdict") or {}
+                    target = verdict.get("dataset_urn") or state.get("affected_dataset_urn")
+                    if not target:
+                        ledger.write(node_id=nid, status="skipped", started_at=started,
+                                     ended_at=now(), effects=[],
+                                     error="verdict named no dataset to write to")
+                        print("  write_back skipped (no target dataset in verdict)")
+                    else:
+                        # Each write is recorded separately so a partial write-back
+                        # is visible as a partial write-back. Collapsing them into
+                        # one record would let a failure halfway through read as a
+                        # clean skip.
+                        applied, failed = [], []
+                        plan = [
+                            ("datahub.add_tags",
+                             {"urn": target, "tags": [verdict.get("root_cause_key", "unclassified")]}),
+                            ("datahub.update_description",
+                             {"urn": target,
+                              "description": verdict.get("explanation") or "Investigated by witness-graph."}),
+                        ]
+                        report_url = state.get("report_url")
+                        if report_url:
+                            plan.append(("datahub.save_document",
+                                         {"urn": target, "url": report_url,
+                                          "label": f"witness-graph {case.get('case_id', 'run')}"}))
+                        implicated = verdict.get("implicated_upstream")
+                        if implicated:
+                            plan.append(("datahub.add_structured_properties",
+                                         {"urn": target, "properties": {"implicatedUpstream": implicated}}))
+                        # The node's own allowlist governs the writes, exactly as it
+                        # governs reads elsewhere. A write the graph did not declare is
+                        # refused and recorded, not executed.
+                        allowlist = node.get("tools") or []
+                        for tool_name, tool_args in plan:
+                            payload, record = tools.call(tool_name, tool_args, allowlist)
+                            if payload.get("error"):
+                                failed.append({"tool": tool_name, "error": payload["error"]})
+                            else:
+                                applied.append({"tool": tool_name,
+                                                "ref": record.get("ref"),
+                                                "result": payload})
+                        ledger.write(node_id=nid,
+                                     status="ok" if applied and not failed else
+                                            ("failed" if not applied else "partial"),
+                                     started_at=started, ended_at=now(),
+                                     effects=["write"],
+                                     output={"target": target, "applied": applied, "failed": failed},
+                                     error=None if not failed else f"{len(failed)} write(s) failed")
+                        print(f"  write_back applied {len(applied)}, failed {len(failed)} on {target}")
 
             elif nid == "report":
                 # Relative to the repo, not absolute. The ledger is a published
