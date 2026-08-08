@@ -91,8 +91,23 @@ TAGS = [
 PREFIX = "witnessgraph"
 
 
+ORCHESTRATOR = "airflow"
+
+
 def dataset_urn(name: str, platform: str) -> str:
     return f"urn:li:dataset:(urn:li:dataPlatform:{platform},{PREFIX}.{name},{ENV})"
+
+
+def dataflow_urn() -> str:
+    return f"urn:li:dataFlow:({ORCHESTRATOR},{PREFIX},{ENV})"
+
+
+def datajob_urn(name: str) -> str:
+    return f"urn:li:dataJob:({dataflow_urn()},{name})"
+
+
+def assertion_urn(name: str) -> str:
+    return f"urn:li:assertion:{name}"
 
 
 def build_plan() -> dict:
@@ -104,7 +119,24 @@ def build_plan() -> dict:
             "description": desc,
             "upstreams": [dataset_urn(u, DATASETS[u][0]) for u in upstreams],
         })
-    return {"datasets": datasets, "jobs": JOBS, "assertions": ASSERTIONS, "tags": TAGS}
+    jobs = []
+    for name, (desc, inputs, outputs) in JOBS.items():
+        jobs.append({
+            "logical": name,
+            "urn": datajob_urn(name),
+            "description": desc,
+            "inputs": [dataset_urn(i, DATASETS[i][0]) for i in inputs],
+            "outputs": [dataset_urn(o, DATASETS[o][0]) for o in outputs],
+        })
+    assertions = []
+    for name, (desc, dataset) in ASSERTIONS.items():
+        assertions.append({
+            "logical": name,
+            "urn": assertion_urn(name),
+            "description": desc,
+            "dataset": dataset_urn(dataset, DATASETS[dataset][0]),
+        })
+    return {"datasets": datasets, "jobs": jobs, "assertions": assertions, "tags": TAGS}
 
 
 def emit(plan: dict) -> int:
@@ -143,6 +175,70 @@ def emit(plan: dict) -> int:
     print(f"  datasets emitted: {len(plan['datasets'])}")
     edges = sum(len(d["upstreams"]) for d in plan["datasets"])
     print(f"  lineage edges:    {edges}")
+
+    # Jobs and assertions used to sit in the plan, get counted in the summary,
+    # and never leave this process, because only tags and datasets had a loop.
+    # Four cases name a job or an assertion in must_cite, so for those the
+    # answer key pointed at assets no lookup could return: an investigation
+    # could not reach full citation recall however well it reasoned, and the
+    # scorer read the gap as a lucky guess.
+    graph.emit(MetadataChangeProposalWrapper(
+        entityUrn=dataflow_urn(),
+        aspect=models.DataFlowInfoClass(name=PREFIX, description="Ingest and modelling jobs."),
+    ))
+    n += 1
+    for j in plan["jobs"]:
+        graph.emit(MetadataChangeProposalWrapper(
+            entityUrn=j["urn"],
+            aspect=models.DataJobInfoClass(
+                name=j["logical"], type=models.AzkabanJobTypeClass.COMMAND,
+                description=j["description"], flowUrn=dataflow_urn(),
+            ),
+        ))
+        n += 1
+        # A collector's outputs are what makes "this table went silent" a
+        # question about a job rather than about a table.
+        graph.emit(MetadataChangeProposalWrapper(
+            entityUrn=j["urn"],
+            aspect=models.DataJobInputOutputClass(
+                inputDatasets=j["inputs"], outputDatasets=j["outputs"],
+            ),
+        ))
+        n += 1
+    print(f"  jobs emitted:     {len(plan['jobs'])}")
+
+    for a in plan["assertions"]:
+        if "freshness" in a["logical"]:
+            info = models.AssertionInfoClass(
+                type=models.AssertionTypeClass.FRESHNESS,
+                description=a["description"],
+                freshnessAssertion=models.FreshnessAssertionInfoClass(
+                    type=models.FreshnessAssertionTypeClass.DATASET_CHANGE,
+                    entity=a["dataset"],
+                    schedule=models.FreshnessAssertionScheduleClass(
+                        type=models.FreshnessAssertionScheduleTypeClass.FIXED_INTERVAL,
+                        # The window is the evidence. A check that accepts a
+                        # 36-hour gap cannot see a snapshot that stalled for one
+                        # day, and the number has to be readable to be cited.
+                        fixedInterval=models.FixedIntervalScheduleClass(
+                            unit=models.CalendarIntervalClass.HOUR, multiple=36,
+                        ),
+                    ),
+                ),
+            )
+        else:
+            info = models.AssertionInfoClass(
+                type=models.AssertionTypeClass.DATASET,
+                description=a["description"],
+                datasetAssertion=models.DatasetAssertionInfoClass(
+                    dataset=a["dataset"],
+                    scope=models.DatasetAssertionScopeClass.DATASET_ROWS,
+                    operator=models.AssertionStdOperatorClass.GREATER_THAN,
+                ),
+            )
+        graph.emit(MetadataChangeProposalWrapper(entityUrn=a["urn"], aspect=info))
+        n += 1
+    print(f"  assertions:       {len(plan['assertions'])}")
     print(f"  total aspects:    {n}")
     return n
 

@@ -39,10 +39,24 @@ def logical_names(ref: str) -> set[str]:
     `sqlite_master` is deliberately left nameless. It is the catalog of every
     relation at once, and crediting it would let a single query satisfy
     `must_cite` for any case in the corpus.
+
+    An assertion urn needs a branch for the same reason and a different shape.
+    A dataset urn parenthesises its parts, so splitting on brackets isolates the
+    name; `urn:li:assertion:orders_quality_monitor` has no brackets at all, so
+    the whole string stays one colon-bearing token and drops out. Two cases name
+    an assertion in `must_cite`, and both were unscoreable.
+
+    A `search:` ref stays nameless on purpose. The query is free text, so
+    crediting it would let an investigation satisfy `must_cite` by typing the
+    asset's name into a search box rather than by looking at the asset.
     """
     if ref.startswith("warehouse://"):
         relation = ref.rsplit("/", 1)[-1]
         return set() if relation.startswith("sqlite_") else {relation}
+    if ref.startswith("urn:li:assertion:"):
+        return {ref.split(":", 3)[3]}
+    if ref.startswith("search:"):
+        return set()
     names = set()
     for tok in re.split(r"[(),]", ref):
         tok = tok.strip()
