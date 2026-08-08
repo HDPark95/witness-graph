@@ -38,7 +38,8 @@ nodes:
       down what feeds it. Skipping this is how investigations anchor on the first
       plausible story.
     depends_on: [intake]
-    tools: [datahub.search, datahub.lineage, datahub.schema, datahub.ownership]
+    tools: [datahub.search, datahub.lineage, datahub.schema, datahub.ownership,
+            warehouse.schema]
     contract: ../schemas/terrain.schema.json
     effects: [read]
     retries: { max: 2, backoff_seconds: 2 }
@@ -59,7 +60,12 @@ nodes:
       would refute its own hypothesis.
     depends_on: [hypothesize]
     map_over: hypotheses
-    tools: [datahub.lineage, datahub.schema, datahub.assertion, warehouse.query]
+    # warehouse.schema is granted because the derived models are views and the
+    # rule that computes a number lives in the view text. Without it MTI-003
+    # held the correct hypothesis, tested it against the raw table instead of
+    # against the view, and refuted itself.
+    tools: [datahub.lineage, datahub.schema, datahub.assertion,
+            warehouse.query, warehouse.schema]
     contract: ../schemas/evidence.schema.json
     effects: [read]
     retries: { max: 2, backoff_seconds: 2 }

@@ -207,6 +207,35 @@ def _warehouse_query(args: dict) -> tuple[object, str]:
     return result, f"warehouse://{WAREHOUSE_DB.stem}/{_first_relation(sql)}"
 
 
+def _warehouse_schema(args: dict) -> tuple[object, str]:
+    """The definition of one relation, including the SQL a view is built from.
+
+    Derived models are views, and the view text is where a bucketing or
+    filtering defect is actually written down. Without this an investigation can
+    read a description saying a table buckets on local time and still have no
+    way to see the expression that does it, so it tests the theory against the
+    raw table instead of against the view and refutes a hypothesis that was
+    correct. That happened on MTI-003: the run held the right theory, checked it
+    in the wrong place, and threw it away.
+    """
+    if WAREHOUSE_DB is None:
+        raise ToolError("no warehouse is attached to this run")
+    relations = warehouse.schema_of(WAREHOUSE_DB)
+    want = str(args.get("relation", "")).strip()
+    if not want:
+        raise ToolError(
+            "warehouse.schema requires `relation`. Available: "
+            + ", ".join(f"{r['name']} ({r['kind']})" for r in relations)
+        )
+    for rel in relations:
+        if rel["name"] == want:
+            return rel, f"warehouse://{WAREHOUSE_DB.stem}/{rel['name']}"
+    raise ToolError(
+        f"no relation named `{want}`. Available: "
+        + ", ".join(r["name"] for r in relations)
+    )
+
+
 def _first_relation(sql: str) -> str:
     """The first table or view named after FROM or JOIN. Good enough to cite."""
     words = sql.replace("(", " ( ").replace(")", " ) ").split()
@@ -224,6 +253,7 @@ REGISTRY = {
     "datahub.assertion": _entity,
     "datahub.queries": _queries,
     "warehouse.query": _warehouse_query,
+    "warehouse.schema": _warehouse_schema,
 }
 
 # What the agent is told it can ask for. Kept next to the registry so the two
@@ -242,6 +272,11 @@ SIGNATURES = {
                        "warehouse this metric is built on. SQLite dialect, read-only. Use it to "
                        "confirm or kill a hypothesis with actual numbers. Cite the result with "
                        "source.ref \"warehouse://<case>/<table>\" exactly as the tool returns it.",
+    "warehouse.schema": 'warehouse.schema {"relation": "<table or view>"} -> its columns and, '
+                        "for a view, the SQL it is defined by. Read this before testing a theory "
+                        "about how a number is computed: the daily and weekly models are views, "
+                        "and a bucketing or filtering rule lives in the view text, not in the raw "
+                        "table underneath it. Omit `relation` to be told which ones exist.",
 }
 
 SOURCE_KIND = {
@@ -252,6 +287,7 @@ SOURCE_KIND = {
     "datahub.assertion": "datahub_assertion",
     "datahub.queries": "warehouse_query",
     "warehouse.query": "warehouse_query",
+    "warehouse.schema": "warehouse_query",
 }
 
 

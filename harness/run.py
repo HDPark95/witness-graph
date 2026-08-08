@@ -31,7 +31,12 @@ import tools
 import warehouse
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
-MODEL = "sonnet"
+# The first full batch ran on sonnet and the ledgers show why that was the
+# wrong default. On MTI-003 the run reached the correct hypothesis, cited the
+# catalog description that supports it, then designed a test that could not
+# bear on it and refuted itself. That is a reasoning failure, not a tooling
+# gap: every lookup it needed was already granted.
+MODEL = "opus"
 MAX_TURNS_PER_NODE = 14
 # Two cases in parallel, three witness investigations each, means six
 # concurrent calls on one box. Under that load a call can sit well past
