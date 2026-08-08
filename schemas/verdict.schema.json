@@ -16,7 +16,7 @@
         "upstream_data_defect",
         "inconclusive"
       ],
-      "description": "The central distinction this project exists to make. `customer_behavior` means the number moved because people acted differently. `instrument_failure` means the number moved because our measurement broke. Conflating these two is the failure mode we are attacking."
+      "description": "The central distinction this project exists to make. `customer_behavior` means the number moved because people acted differently. `instrument_failure` means the number moved because our measurement broke. Conflating these two is the failure mode we are attacking. Two questions separate all four classes. First: did anyone intend the measurement to behave this way? If not, the class is `instrument_failure`, wherever along the path the arithmetic went wrong, and that includes a rule two models disagree about because nobody chose the disagreement. Second, if the behaviour was intended: did the intent itself change, so that one metric name now counts a different population than before? That is `definition_change`, and it requires a change to what the metric means rather than a discrepancy in how it is computed. `upstream_data_defect` is a measurement path behaving as designed over inputs that arrived corrupted. `inconclusive` is a real answer, scored as an abstention rather than as a wrong verdict, so prefer it over committing to a class the witnesses do not support."
     },
     "root_cause_key": {
       "type": "string",

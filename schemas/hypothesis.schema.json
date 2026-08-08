@@ -8,7 +8,10 @@
   "additionalProperties": false,
   "properties": {
     "id": { "type": "string", "pattern": "^h[0-9]+$" },
-    "class": { "enum": ["customer_behavior", "instrument_failure", "definition_change", "upstream_data_defect"] },
+    "class": {
+      "enum": ["customer_behavior", "instrument_failure", "definition_change", "upstream_data_defect"],
+      "description": "Same four classes the verdict commits to, and the same test decides between them. Unintended behaviour anywhere in the measurement path is `instrument_failure`, including a rule two models disagree about, because nobody chose the disagreement. `definition_change` requires the meaning of the metric to have changed, not merely its computation to be inconsistent. `upstream_data_defect` is a correct path over corrupted inputs. Classify by which of these a hypothesis asserts, because the verdict inherits the class of whichever hypothesis survives."
+    },
     "statement": { "type": "string", "description": "One falsifiable sentence." },
     "would_be_confirmed_by": { "type": "array", "items": { "type": "string" } },
     "would_be_refuted_by": {
