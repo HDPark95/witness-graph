@@ -188,16 +188,29 @@ def majority_class_baseline(cases: list[dict]) -> dict:
     is also the fastest way for a reader to check we did not stack the deck.
     """
     if not cases:
-        return {"baseline_verdict": None, "baseline_accuracy": 0.0}
+        return {"baseline_verdict": None, "baseline_accuracy": 0.0,
+                "baseline_root_cause_accuracy": 0.0}
     counts: dict[str, int] = {}
+    causes: dict[str, int] = {}
     for c in cases:
         v = c["ground_truth"]["verdict"]
         counts[v] = counts.get(v, 0) + 1
+        k = c["ground_truth"]["root_cause_key"]
+        causes[k] = causes.get(k, 0) + 1
     top, hits = max(counts.items(), key=lambda kv: kv[1])
+    # The same lazy agent, scored on the question that actually matters. Guessing
+    # the most common verdict is a real strategy on a corpus with five classes;
+    # guessing the most common root cause is not, because the causes are nearly
+    # all distinct. Both baselines are published because the verdict one is the
+    # flattering comparison and quoting only that would be the deck-stacking
+    # this function exists to prevent.
+    _, cause_hits = max(causes.items(), key=lambda kv: kv[1])
     return {
         "baseline_verdict": top,
         "baseline_accuracy": round(hits / len(cases), 3),
+        "baseline_root_cause_accuracy": round(cause_hits / len(cases), 3),
         "verdict_distribution": dict(sorted(counts.items(), key=lambda kv: -kv[1])),
+        "distinct_root_causes": len(causes),
     }
 
 
@@ -269,6 +282,14 @@ def main() -> int:
     summary.update(majority_class_baseline(all_cases))
     lift = summary.get("verdict_top1", 0.0) - summary.get("baseline_accuracy", 0.0)
     summary["lift_over_baseline"] = round(lift, 3)
+    # Lift on the root cause as well, because the headline claim is about naming
+    # the specific fault and a lift computed only on the verdict answers a
+    # different question. With one lift reported, a run that names every root
+    # cause correctly and misfiles one verdict label reads as worse than doing
+    # nothing, which describes the label taxonomy rather than the investigation.
+    summary["root_cause_lift_over_baseline"] = round(
+        summary.get("root_cause_top1", 0.0)
+        - summary.get("baseline_root_cause_accuracy", 0.0), 3)
 
     report = {"summary": summary, "per_case": rows}
     text = json.dumps(report, indent=2, ensure_ascii=False)
