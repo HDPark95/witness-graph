@@ -14,15 +14,28 @@ description: >
 
 state_schema: ../schemas/state.json
 
-# Measured, not guessed, and raised twice as the harness got real. The first
-# ceiling (900s) cut every run off mid-evidence. The second (1800s) held until
-# the warehouse was connected, at which point investigations started writing
-# SQL and confirming things instead of giving up, which costs turns. Terrain
-# mapping runs ~460s and each parallel witness investigation ~470s.
+# Measured, not guessed, and raised three times as the harness got real. The
+# first ceiling (900s) cut every run off mid-evidence. The second (1800s) held
+# until the warehouse was connected, at which point investigations started
+# writing SQL and confirming things instead of giving up, which costs turns.
+#
+# The third raise is the one worth reading. On opus, MTI-003 reached a correct
+# verdict and a correct root cause and was then killed 68 seconds past the
+# 3600s ceiling, with citation_gate, propose_remediation and report still to
+# run. It needed about three more minutes. A ceiling that lands mid-graph turns
+# a solved case into an aborted one and reports it as though the agent stopped,
+# which is the same failure as the 900s ceiling wearing a bigger number.
+#
+# Wall time is real elapsed time, not the sum of node times: three witness
+# investigations run in parallel, so their 1195s, 1459s and 1739s cost 1739s of
+# clock, not 4393s. Steps (11 of 40) and tool calls (34 of 80) were never close.
+# Wall clock is the only binding limit, so it is the only one that moves, and
+# tool calls move with it because a run told to observe both sides of a
+# comparison makes more of them.
 budget:
   max_steps: 40
-  max_tool_calls: 80
-  max_wall_seconds: 3600
+  max_tool_calls: 120
+  max_wall_seconds: 7200
 
 nodes:
   - id: intake
@@ -65,6 +78,13 @@ nodes:
       underneath. A test run against the raw table cannot bear on a hypothesis
       about the view, and a result that looks like a refutation is then no
       evidence at all.
+
+      When the symptom is that two numbers disagree, observe both of them. A
+      witness about one side establishes how that side behaves and says nothing
+      about a disagreement. Naming the rule one model follows without reading
+      what the other model does leaves the conflict asserted rather than shown,
+      and a verdict resting on half of a comparison is a guess that happens to
+      be pointed the right way.
     depends_on: [hypothesize]
     map_over: hypotheses
     # warehouse.schema is granted because the derived models are views and the

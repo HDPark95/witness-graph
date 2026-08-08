@@ -686,8 +686,18 @@ def main() -> int:
                     print("  write_back skipped (write tools not connected)")
 
             elif nid == "report":
+                # Relative to the repo, not absolute. The ledger is a published
+                # artefact, and an absolute path bakes in whatever directory the
+                # run happened to execute from: a home directory, a scratch
+                # path, an organisation name sitting in one of its segments.
+                # That is how a batch run put a private path into three ledgers
+                # that were about to ship.
+                try:
+                    rel = ledger.path.resolve().relative_to(ROOT)
+                except ValueError:
+                    rel = pathlib.Path(ledger.path.parent.name) / ledger.path.name
                 ledger.write(node_id=nid, status="ok", started_at=now(), ended_at=now(),
-                             effects=[], output={"ledger": str(ledger.path)},
+                             effects=[], output={"ledger": str(rel)},
                              cost={"wall_ms": 0})
 
             idx += 1
