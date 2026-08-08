@@ -38,8 +38,8 @@ verdict has to cite assets in it.
 
 ## What the agent does
 
-Eleven nodes. Four of them are not agents, and that is the point: the checks that
-keep an investigation honest are code, not prompting.
+Eleven nodes, and only five of them are agents. That is the point: the checks
+that keep an investigation honest are code, not prompting.
 
 | Node | Kind | What it does |
 |---|---|---|
@@ -49,16 +49,67 @@ keep an investigation honest are code, not prompting.
 | `gather_witnesses` | agent | Collect evidence per hypothesis, in parallel. |
 | `witness_gate` | **gate** | Fail the run if any hypothesis was never argued against. |
 | `adjudicate` | agent | Commit to one verdict. |
-| `citation_gate` | **gate** | Fail the run if a cited asset is absent from the evidence ledger. |
+| `citation_gate` | **gate** | Fail the run if the verdict cites a witness that is not in the ledger, or rejects an alternative without a refuting witness. |
 | `propose_remediation` | agent | Say what to fix. |
 | `human_approval` | **human** | Nothing outside the run changes without a person saying yes. |
-| `write_back` | tool | Apply the approved tag or owner in DataHub. |
+| `write_back` | tool | Draft the write-back and stop. Write tools are unconnected in this release, so an approved run records what it would have written rather than writing it. |
 | `report` | transform | Render the run from the ledger alone. |
 
-The two gates are the reason this is a graph rather than a prompt. An
-investigation that anchored on its first plausible story fails `witness_gate`
-mechanically. An investigation that invented a table name fails `citation_gate`.
+The two gates are the reason this is a graph rather than a prompt.
+
+- An investigation that anchored on its first plausible story fails
+  `witness_gate`, which asserts `at_least_one_hypothesis_refuted`.
+- One that invented a table fails the same gate on
+  `every_witness_source_resolves`: each source ref is fetched again, and a
+  witness whose source cannot be re-resolved is treated exactly like one that
+  was made up.
+- One that dismisses an alternative with a confident sentence and no evidence
+  fails `citation_gate` on `alternatives_rejected_have_refuting_witnesses`.
+
 Neither check asks the model what it did.
+
+---
+
+## Running it
+
+Needs a DataHub instance and a virtualenv holding the DataHub SDK and
+`mcp-server-datahub`.
+
+```bash
+export DATAHUB_GMS_URL=http://localhost:8080
+
+.venv/bin/python harness/emit_estate.py                              # publish the estate
+.venv/bin/python harness/warehouse.py --all --out warehouse/         # seed 11 warehouses
+.venv/bin/python harness/warehouse.py --self-check                   # each fault reproduces
+.venv/bin/python harness/audit_citability.py                         # every answer is reachable
+
+./batch.sh runs/                                                     # pilot one case, then the rest, then score
+
+.venv/bin/python harness/run.py --case cases/MTI-003.json --out runs/    # or one case
+.venv/bin/python harness/render_run.py --graph graphs/metric-truth.yaml \
+    --ledger runs/MTI-003.jsonl --case cases/MTI-003.json --out run.html
+```
+
+**Use the venv interpreter, not bare `python3`.** The harness reaches DataHub
+through its MCP Server and that import lives only in the venv. Under bare
+`python3` every node still completes, every lookup fails with
+`No module named 'mcp'`, and a ledger is still written, so the run looks finished
+and contains no evidence. `batch.sh` refuses to start rather than let that happen.
+
+Nothing writes to DataHub without `--approve`, and `human_approval` has no
+auto-approve path.
+
+To measure what a capability is worth instead of asserting it, revoke it and run
+the same benchmark again:
+
+```bash
+.venv/bin/python harness/run.py --case cases/MTI-003.json --out runs-no-lineage/ \
+    --ablate datahub.lineage
+```
+
+A revoked call is refused by the same per-node allowlist as any out-of-scope
+call, so the ledger records the attempt and you can see which reasoning step the
+agent could no longer take.
 
 ---
 
@@ -75,12 +126,18 @@ construction rather than by our opinion.
 | `customer_behavior` | MTI-008, MTI-010, MTI-011 |
 | `definition_change` | MTI-009 |
 
-**Four cases are controls where nothing is broken and customers really did
+**Three cases are controls where nothing is broken and customers really did
 change.** They are there because a benchmark made only of broken pipelines
-measures bias rather than judgement: an agent that always answers "instrument
-failure" would score 6 out of 11 here, and would have scored 100 percent on an
-earlier draft of this set. Every case also carries distractors, plus
-`must_cite` assets and `must_not_conclude` verdicts.
+measures bias rather than judgement. Even with them, an agent that always answers
+"instrument failure" scores 6 out of 11, which is why verdict accuracy is not the
+headline number below. Every case also carries distractors, plus `must_cite`
+assets and `must_not_conclude` verdicts.
+
+`harness/audit_citability.py` asserts that every `must_cite` asset is reachable
+by some tool the agent actually has, either as a relation in the case warehouse
+or as a catalog urn whose logical name survives scoring. A case whose answer key
+points at something no lookup can return does not measure investigation quality,
+it measures guessing, so the check fails the build rather than the run.
 
 Difficulty spans easy to hard. The hard ones are the ones that look like the
 other answer: a browser-specific checkout drop that arrives the same week a user
@@ -95,11 +152,24 @@ number is recomputed from ledger records and case files, so a run cannot flatter
 itself.
 
 ```bash
-python3 harness/score.py --cases cases/ --runs runs/ --out report.json
+.venv/bin/python harness/score.py --cases cases/ --runs runs/ --out report.json
 ```
 
-It reports verdict accuracy, citation precision against the witness ledger, and
-whether the gates fired when they should have.
+Read these three first.
+
+- **`root_cause_top1`** — did it name the specific fault. This is the headline
+  number, because always answering "instrument failure" gets 6 of 11 verdicts
+  right and essentially no root causes right.
+- **`lucky_guess_rate`** — right answer reached without touching the sources a
+  correct investigation cannot avoid. Reported separately so it never inflates
+  accuracy.
+- **`abstention_rate`** — how often it answered `inconclusive`. Abstaining is a
+  real answer here and is not scored as a wrong verdict, so a run that suppresses
+  it to look decisive is visible rather than rewarded.
+
+It also reports verdict accuracy, citation precision and recall against the
+witness ledger, `confidently_wrong_rate`, unapproved effects, disallowed tool
+calls, and whether the gates fired.
 
 `harness/render_run.py` turns a single ledger into a self-contained HTML page, so
 a reviewer can read what happened without running anything.
@@ -120,11 +190,19 @@ project is its first subject.
 ## Repository layout
 
 ```
-cases/       11 benchmark cases with sealed answer keys, plus the generator
-graphs/      the investigation graph, validated against schemas/graph.schema.json
-schemas/     10 JSON Schemas: state, symptom, hypothesis, evidence, verdict, ledger, ...
-harness/     estate emitter, scorer, run renderer
-docs/        the graph engineering rubric
+cases/                       11 benchmark cases with sealed answer keys, plus the generator
+graphs/metric-truth.yaml     the investigation graph, validated against schemas/graph.schema.json
+schemas/                     10 JSON Schemas: state, symptom, hypothesis, evidence, verdict, ledger, ...
+harness/run.py               the executor: walks the graph, writes the ledger
+harness/tools.py             the tool boundary where the per-node allowlist is enforced
+harness/warehouse.py         seeds a per-case warehouse and self-checks that each fault reproduces
+harness/score.py             the scorer, reading ledgers only
+harness/emit_estate.py       publishes the estate to DataHub
+harness/render_run.py        renders one ledger to a self-contained HTML page
+harness/audit_citability.py  asserts every must_cite asset is reachable
+batch.sh                     pilot one case, then run the rest two at a time, then score
+docs/RUBRIC.md               the graph engineering rubric
+runs/                        a sample ledger from a completed investigation
 ```
 
 All schemas are JSON Schema draft 2020-12 and cross-reference by relative path.
