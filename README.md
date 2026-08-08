@@ -159,8 +159,10 @@ itself.
 Read these three first.
 
 - **`root_cause_top1`** — did it name the specific fault. This is the headline
-  number, because always answering "instrument failure" gets 6 of 11 verdicts
-  right and essentially no root causes right.
+  number. The eleven root causes are all distinct, so a lazy agent guessing the
+  most common one scores 0.091, while guessing the most common verdict scores
+  0.545. Both baselines and both lifts are reported, because quoting only the
+  verdict lift would be the deck-stacking the baseline exists to expose.
 - **`lucky_guess_rate`** — right answer reached without touching the sources a
   correct investigation cannot avoid. Reported separately so it never inflates
   accuracy.
@@ -174,6 +176,22 @@ calls, and whether the gates fired.
 
 `harness/render_run.py` turns a single ledger into a self-contained HTML page, so
 a reviewer can read what happened without running anything.
+
+Two ledgers for the same case ship with the repo, and scoring them against each
+other is the shortest demonstration that the harness discriminates.
+
+```bash
+.venv/bin/python harness/score.py --cases cases/ --runs runs/         # root_cause_top1 1.0
+.venv/bin/python harness/score.py --cases cases/ --runs runs-sonnet/  # root_cause_top1 0.0
+```
+
+`runs/` names the root cause with citation precision and recall both 1.0 and no
+lucky guess. Its verdict label is still wrong: the run predates the verdict
+taxonomy being defined in the schema, and the ledger shows the reasoning that
+led there. `runs-sonnet/` is the same case on a smaller model, which followed a
+distractor. `runs-catalog-only/` holds seven earlier runs from before the
+warehouse was wired in, when the agent could read the catalog but not query the
+data underneath it.
 
 ---
 
