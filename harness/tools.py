@@ -275,13 +275,24 @@ REGISTRY = {
 # cannot drift apart.
 SIGNATURES = {
     "datahub.search": 'datahub.search {"query": "<free text>", "count": 10} '
-                      "-> matching datasets and jobs. Start here when you need a URN.",
+                      "-> matching datasets, jobs and checks. Start here when you need a urn. "
+                      "A search result is not a citation: cite the urn you looked up, not the query.",
     "datahub.lineage": 'datahub.lineage {"urn": "<urn>", "direction": "UPSTREAM|DOWNSTREAM", "max_hops": 1} '
-                       "-> what feeds it, or what it feeds.",
+                       "-> what feeds it, or what it feeds. Upstream results include the jobs that "
+                       "write the dataset, not only other datasets. When a table has gone silent, "
+                       "the job that fills it is upstream of it and is worth citing by urn.",
     "datahub.schema": 'datahub.schema {"urn": "<dataset urn>"} '
                       "-> schema fields plus the entity record. Fields may be absent; that is a blind spot, not a clean result.",
-    "datahub.ownership": 'datahub.ownership {"urn": "<urn>"} -> the entity record including owners.',
-    "datahub.assertion": 'datahub.assertion {"urn": "<urn>"} -> the entity record including any assertions.',
+    "datahub.ownership": 'datahub.ownership {"urn": "<urn>"} '
+                         "-> the full entity record for any urn, owners included. The name says "
+                         "owners because that is the usual reason to call it, but it resolves "
+                         "datasets, jobs and assertions alike. Use it to confirm a job or a check "
+                         "exists before citing it.",
+    "datahub.assertion": 'datahub.assertion {"urn": "<urn>"} '
+                         "-> the full entity record for any urn, declared checks included. Same "
+                         "lookup as datahub.ownership under a different name. A freshness or "
+                         "row-count check is an asset in its own right: cite its urn when the "
+                         "check itself is part of the story.",
     "datahub.queries": 'datahub.queries {"urn": "<dataset urn>"} -> SQL seen against this dataset.',
     "warehouse.query": 'warehouse.query {"sql": "<single SELECT>"} -> up to 50 rows from the '
                        "warehouse this metric is built on. SQLite dialect, read-only. Use it to "
