@@ -38,8 +38,8 @@ verdict has to cite assets in it.
 
 ## What the agent does
 
-Eleven nodes, and only five of them are agents. That is the point: the checks
-that keep an investigation honest are code, not prompting.
+Eleven nodes. Only five of them are agents. The other six are code, and that is
+the point: the checks that keep an investigation honest are not prompting.
 
 | Node | Kind | What it does |
 |---|---|---|
@@ -47,7 +47,7 @@ that keep an investigation honest are code, not prompting.
 | `map_terrain` | agent | Walk DataHub lineage around the metric before hypothesising. |
 | `hypothesize` | agent | Form competing explanations, each with what would refute it. |
 | `gather_witnesses` | agent | Collect evidence per hypothesis, in parallel. |
-| `witness_gate` | **gate** | Fail the run if any hypothesis was never argued against. |
+| `witness_gate` | **gate** | Fail the run unless every hypothesis has a witness, every source resolves, at least one hypothesis is refuted, and no claim is unsourced. |
 | `adjudicate` | agent | Commit to one verdict. |
 | `citation_gate` | **gate** | Fail the run if the verdict cites a witness that is not in the ledger, or rejects an alternative without a refuting witness. |
 | `propose_remediation` | agent | Say what to fix. |
@@ -127,10 +127,11 @@ construction rather than by our opinion.
 | `definition_change` | MTI-009 |
 
 **Three cases are controls where nothing is broken and customers really did
-change.** They are there because a benchmark made only of broken pipelines
-measures bias rather than judgement. Even with them, an agent that always answers
-"instrument failure" scores 6 out of 11, which is why verdict accuracy is not the
-headline number below. Every case also carries distractors, plus `must_cite`
+change**, and a fourth records a definition change rather than a defect. They are
+there because a benchmark made only of broken pipelines measures bias rather than
+judgement. Even with them, an agent that always answers "instrument failure"
+scores 6 out of 11, which is why verdict accuracy is not the headline number
+below. Every case also carries distractors, plus `must_cite`
 assets and `must_not_conclude` verdicts.
 
 `harness/audit_citability.py` asserts that every `must_cite` asset is reachable
