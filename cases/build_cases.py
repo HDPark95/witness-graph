@@ -55,7 +55,13 @@ CASES = [
     {
         "case_id": "MTI-003",
         "title": "Daily totals exceed the weekly rollup",
-        "symptom": "Summing the daily signup table over a week gives a number about 9 percent higher than the weekly rollup for the same period.",
+        # Measured against the seeded warehouse, not estimated. The affected week
+        # runs 1194 daily against 895 weekly, so the excess is a third and not the
+        # 9 percent this line used to claim, and naming the week gives the
+        # investigation somewhere to start. The generator had drifted from the
+        # committed JSON here: regenerating the corpus silently replaced a correct
+        # symptom with a wrong one.
+        "symptom": "For the week of 2026-06-22, summing the daily signup table gives about a third more signups than the weekly rollup reports for the same week.",
         "difficulty": "medium",
         "ground_truth": {
             "verdict": "instrument_failure",
@@ -87,7 +93,15 @@ CASES = [
     {
         "case_id": "MTI-005",
         "title": "Shipped feature, zero usage",
-        "symptom": "A new recommendation module was released on the 3rd. Deployment is confirmed, but the usage metric has never left zero.",
+        # A symptom has to name something the seeded data contains. This one used
+        # to describe "a new recommendation module released on the 3rd", and the
+        # warehouse holds price_alerts shipped on day 20 and quick_reorder on day
+        # 12, with no recommendation feature and no day-3 deploy anywhere in the
+        # release log. A run went looking for the feature the symptom named,
+        # correctly reported the release log contains no such thing, and
+        # concluded the zero was real usage. It was right about the data and the
+        # case was wrong, so the scorer recorded a sound investigation as a miss.
+        "symptom": "The price alerts feature shipped on day 20 and the deploy is confirmed in the release log, but its usage metric has never left zero.",
         "difficulty": "medium",
         "ground_truth": {
             "verdict": "instrument_failure",

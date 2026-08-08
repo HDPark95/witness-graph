@@ -162,6 +162,40 @@ def check_evidence_is_current() -> None:
             )
 
 
+def check_cases_regenerate_identically() -> None:
+    """The committed corpus has to be what the generator produces.
+
+    These two had drifted. MTI-003's committed symptom named the affected week
+    and the right magnitude, measured against the warehouse at 1194 daily
+    against 895 weekly; the generator still said 9 percent and named no week.
+    Regenerating would have replaced a correct answer key with a wrong one, and
+    nothing would have reported it. A corpus whose generator disagrees with it is
+    not reproducible, which is the property that lets a reader trust the ground
+    truth was constructed rather than chosen.
+    """
+    import shutil
+    import tempfile
+
+    cases = ROOT / "cases"
+    with tempfile.TemporaryDirectory() as tmp:
+        backup = pathlib.Path(tmp) / "cases"
+        shutil.copytree(cases, backup)
+        result = subprocess.run([sys.executable, str(cases / "build_cases.py")],
+                                cwd=ROOT, capture_output=True, text=True)
+        if result.returncode != 0:
+            fail(f"cases/build_cases.py exits {result.returncode}; the corpus cannot be rebuilt")
+        drifted = []
+        for path in sorted(cases.glob("MTI-*.json")):
+            before = (backup / path.name).read_text(encoding="utf-8")
+            if path.read_text(encoding="utf-8") != before:
+                drifted.append(path.name)
+            # Restore regardless, so running the checker never edits the corpus.
+            path.write_text(before, encoding="utf-8")
+        if drifted:
+            fail("cases/build_cases.py does not reproduce the committed corpus: "
+                 + ", ".join(drifted))
+
+
 def check_identifiers() -> None:
     """The repository is published under a personal account on purpose.
 
@@ -202,6 +236,7 @@ def main() -> int:
     check_no_local_paths()
     check_declared_tools_exist()
     check_evidence_is_current()
+    check_cases_regenerate_identically()
     check_identifiers()
     if args.warehouses.exists():
         check_citability(args.warehouses)
