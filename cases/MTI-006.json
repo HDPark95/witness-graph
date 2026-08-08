@@ -1,7 +1,7 @@
 {
   "case_id": "MTI-006",
   "title": "The anomaly detector has reported nothing for a month",
-  "symptom": "A data quality detector has raised no alerts in 31 days, across a period that included two known incidents.",
+  "symptom": "A data quality detector on the orders pipeline has raised no alerts in 31 days, across a period that included two known incidents.",
   "difficulty": "hard",
   "seed": {
     "operations": [

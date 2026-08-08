@@ -117,7 +117,16 @@ CASES = [
     {
         "case_id": "MTI-006",
         "title": "The anomaly detector has reported nothing for a month",
-        "symptom": "A data quality detector has raised no alerts in 31 days, across a period that included two known incidents.",
+        # Says which pipeline. Without that the symptom named no subject area at
+        # all, and a run investigated the signup assets instead: it reached the
+        # right root cause by general reasoning about silent detectors and cited
+        # signup_conversion_daily, channel_events_raw and web_sessions, touching
+        # none of the three orders assets in must_cite. Citation recall 0.0 on a
+        # correct answer, which the scorer correctly recorded as a lucky guess.
+        # Naming the pipeline gives up nothing: which of the two orders tables the
+        # detector actually watches is the question, and that is what separates
+        # detector_misaimed from a real data problem.
+        "symptom": "A data quality detector on the orders pipeline has raised no alerts in 31 days, across a period that included two known incidents.",
         "difficulty": "hard",
         "ground_truth": {
             "verdict": "instrument_failure",
