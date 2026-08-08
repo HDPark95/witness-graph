@@ -95,6 +95,27 @@ def dataset_urn(name: str, platform: str) -> str:
     return f"urn:li:dataset:(urn:li:dataPlatform:{platform},{PREFIX}.{name},{ENV})"
 
 
+def job_urn(name: str) -> str:
+    """A dataJob urn keeps its logical name in a parenthesised segment.
+
+    That shape matters beyond the catalog: the scorer reads asset names out of a
+    source ref by splitting on parentheses and commas, so a name that sits in its
+    own comma-separated segment survives and one buried in a colon-joined string
+    does not.
+    """
+    return f"urn:li:dataJob:(urn:li:dataFlow:(airflow,{PREFIX},{ENV}),{name})"
+
+
+def assertion_urn(name: str) -> str:
+    """Assertion urns are opaque by convention, which makes them uncitable.
+
+    DataHub identifies an assertion by an id with no structure, so nothing in the
+    urn carries the logical name a case asks the investigation to cite. We keep
+    the logical name in a parenthesised segment for the same reason as jobs.
+    """
+    return f"urn:li:assertion:(({PREFIX},{ENV}),{name})"
+
+
 def build_plan() -> dict:
     datasets = []
     for name, (platform, desc, upstreams) in DATASETS.items():
@@ -104,7 +125,18 @@ def build_plan() -> dict:
             "description": desc,
             "upstreams": [dataset_urn(u, DATASETS[u][0]) for u in upstreams],
         })
-    return {"datasets": datasets, "jobs": JOBS, "assertions": ASSERTIONS, "tags": TAGS}
+    jobs = [
+        {"logical": name, "urn": job_urn(name), "description": desc,
+         "inputs": [dataset_urn(i, DATASETS[i][0]) for i in inputs],
+         "outputs": [dataset_urn(o, DATASETS[o][0]) for o in outputs]}
+        for name, (desc, inputs, outputs) in JOBS.items()
+    ]
+    assertions = [
+        {"logical": name, "urn": assertion_urn(name), "description": desc,
+         "dataset": dataset_urn(target, DATASETS[target][0])}
+        for name, (desc, target) in ASSERTIONS.items()
+    ]
+    return {"datasets": datasets, "jobs": jobs, "assertions": assertions, "tags": TAGS}
 
 
 def emit(plan: dict) -> int:
@@ -141,6 +173,41 @@ def emit(plan: dict) -> int:
             ))
             n += 1
     print(f"  datasets emitted: {len(plan['datasets'])}")
+
+    # Jobs and assertions were built into the plan and then never emitted, so four
+    # cases asked the investigation to cite an asset that did not exist anywhere:
+    # MTI-001 and MTI-010 name an ingest job, MTI-004 and MTI-006 name a check.
+    for j in plan["jobs"]:
+        graph.emit(MetadataChangeProposalWrapper(
+            entityUrn=j["urn"],
+            aspect=models.DataJobInfoClass(name=j["logical"], type="COMMAND",
+                                           description=j["description"]),
+        ))
+        n += 1
+        if j["inputs"] or j["outputs"]:
+            graph.emit(MetadataChangeProposalWrapper(
+                entityUrn=j["urn"],
+                aspect=models.DataJobInputOutputClass(
+                    inputDatasets=j["inputs"], outputDatasets=j["outputs"]),
+            ))
+            n += 1
+    print(f"  jobs emitted:     {len(plan['jobs'])}")
+
+    for a in plan["assertions"]:
+        graph.emit(MetadataChangeProposalWrapper(
+            entityUrn=a["urn"],
+            aspect=models.AssertionInfoClass(
+                type=models.AssertionTypeClass.DATASET,
+                description=a["description"],
+                datasetAssertion=models.DatasetAssertionInfoClass(
+                    dataset=a["dataset"],
+                    scope=models.DatasetAssertionScopeClass.DATASET_ROWS,
+                    operator=models.AssertionStdOperatorClass._NATIVE_,
+                ),
+            ),
+        ))
+        n += 1
+    print(f"  assertions emitted: {len(plan['assertions'])}")
     edges = sum(len(d["upstreams"]) for d in plan["datasets"])
     print(f"  lineage edges:    {edges}")
     print(f"  total aspects:    {n}")
