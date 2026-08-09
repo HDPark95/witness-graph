@@ -1,7 +1,9 @@
 # Devpost submission draft
 
-Paste-ready text for the submission form. Numbers marked `[3/11]` come from the
-first three completed runs and are replaced when the full batch lands.
+Paste-ready text for the submission form. The section marked `[3 of 11 cases]`
+comes from the three runs whose ledgers are committed, and is replaced when the
+full batch lands. The sample restriction is stated there rather than buried,
+because those three share a verdict label and that changes how the lift reads.
 
 ---
 
@@ -69,7 +71,10 @@ found four cases whose keys pointed at assets nothing published, and it fails th
 build if that recurs. It does not yet check that a tool in the node's allowlist
 can discover that asset, which is a gap two assertions passed through.
 
-## Results `[3/11]`
+## Results `[3 of 11 cases]`
+
+Three cases have committed ledgers in `runs/`. Everything below is what
+`harness/score.py` recomputes from them, and can be reproduced with one command.
 
     verdict accuracy                 1.0
     root cause accuracy              1.0
@@ -79,17 +84,30 @@ can discover that asset, which is a gap two assertions passed through.
     unapproved effects               0
     disallowed tool calls            0
 
-    lift over majority-class baseline   +0.455  (verdict)
-    lift over majority-class baseline   +0.909  (root cause)
+**Read the lift carefully, because these three are not a representative
+sample.** All three carry the same verdict label, `instrument_failure`, which is
+also the most common label in the corpus. Measured against the full eleven-case
+corpus the majority-class baseline is 0.545 on the verdict and 0.091 on the root
+cause, which would make our lift +0.455 and +0.909. Measured against the three
+cases actually scored, the same lazy agent gets 1.000 on the verdict and 0.333 on
+the root cause:
 
-These are the three ledgers committed to `runs/`, recomputed by `harness/score.py`
-when the project page was built. Three is a small sample and the accuracies read
-that way; the remaining eight are running and these figures are replaced by the
-full set.
+    verdict lift, on the cases actually scored      +0.000
+    root cause lift, on the cases actually scored   +0.667
 
-The baseline is the agent that always answers the most common verdict. Reporting
-lift rather than raw accuracy is the point: on this corpus a detector that never
-investigates already scores 0.545.
+Root cause is the headline number, and it survives the correction: naming the
+specific fault is not something you reach by guessing a label. The verdict figure
+does not survive it. Quoting the +0.455 would be precisely the deck-stacking that
+publishing a baseline exists to expose, so we report the number that holds.
+
+Two of these three were reached without the lucky-guess flag, and the third,
+MTI-001, is flagged: it named the right fault while its citation recall was 0.5.
+That flag is in the output above rather than smoothed out of it.
+
+Three is a small sample and the accuracies read that way. The remaining eight are
+running, and these figures are replaced by the full set, at which point the two
+baselines coincide and the distinction above stops mattering.
+
 
 ## Challenges
 
