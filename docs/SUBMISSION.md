@@ -126,9 +126,25 @@ Python, DataHub, DataHub MCP server, SQLite, JSON Schema, Anthropic Claude.
 
 ## Try it out
 
-Repository, Apache 2.0. `README.md` explains the method without requiring a
-checkout, and `harness/score.py` recomputes every number in this submission from
-the run ledgers.
+**Project URL: https://renechoi.github.io/witness-graph/**
 
-Project URL: the self-contained run page published as a static site, so a
-reviewer can read one full investigation end to end without cloning anything.
+Every figure on that page is the output of `harness/score.py`, run when the page
+was built, so the site cannot disagree with the repository. Each case links to
+the full investigation: which of the eleven nodes fired, every tool call, every
+witness gathered, and the verdict set against the answer key. The scorer's raw
+output is published beside it as `summary.json`.
+
+Repository, Apache 2.0. `README.md` explains the method without requiring a
+checkout. Scoring needs no API key and no DataHub instance:
+
+```
+python3 harness/warehouse.py --all --out warehouse/
+python3 harness/score.py --cases cases/ --runs runs/
+python3 harness/check_submission.py --warehouses warehouse/
+```
+
+The last command is the one worth running. It fails the build when the
+repository is not in a state a judge could evaluate: a node declaring a tool
+that is not registered, a committed ledger that answers its own case wrongly, a
+case corpus that no longer regenerates identically, a local path leaking into a
+ledger. Each of those is a defect it caught here, not a hypothetical.
