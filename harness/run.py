@@ -680,10 +680,65 @@ def main() -> int:
                     ledger.write(node_id=nid, status="skipped", started_at=now(),
                                  ended_at=now(), effects=[], error="no upstream approval")
                 else:
-                    ledger.write(node_id=nid, status="skipped", started_at=now(),
-                                 ended_at=now(), effects=[],
-                                 error="write tools are not connected in this run")
-                    print("  write_back skipped (write tools not connected)")
+                    started = now()
+                    verdict = state.get("verdict") or {}
+                    # Targets come from the witnesses the verdict cited, never from a
+                    # field the agent fills in. Those refs already passed
+                    # `every_witness_source_resolves`, so a write cannot land on an
+                    # asset the investigation never opened. Asking the agent for a urn
+                    # instead would let it invent one, and the write would follow.
+                    cited = set(verdict.get("cited_witnesses") or [])
+                    by_id = {w.get("id"): w for w in state.get("witnesses", [])}
+                    targets = []
+                    for wid in cited:
+                        ref = ((by_id.get(wid) or {}).get("source") or {}).get("ref", "")
+                        if ref.startswith("urn:li:dataset:") and ref not in targets:
+                            targets.append(ref)
+                    if not targets:
+                        ledger.write(node_id=nid, status="skipped", started_at=started,
+                                     ended_at=now(), effects=[],
+                                     error="no cited witness resolved to a dataset urn")
+                        print("  write_back skipped (no cited dataset witness)")
+                    else:
+                        # Each write is recorded separately so a partial write-back
+                        # is visible as a partial write-back. Collapsing them into
+                        # one record would let a failure halfway through read as a
+                        # clean skip.
+                        applied, failed = [], []
+                        # `narrative` already exists in the verdict schema and the agent
+                        # already fills it, so the finding is written rather than a
+                        # placeholder. save_document is left out of this release: the
+                        # report node writes no artefact, so there is no document to
+                        # attach and a link to nothing is worse than no link.
+                        note = (verdict.get("narrative") or "").strip() or "Investigated by witness-graph."
+                        plan = []
+                        for target in targets:
+                            plan.append(("datahub.add_tags",
+                                         {"urn": target,
+                                          "tags": [verdict.get("root_cause_key", "unclassified")]}))
+                            plan.append(("datahub.update_description",
+                                         {"urn": target, "description": note}))
+                        # The node's own allowlist governs the writes, exactly as it
+                        # governs reads elsewhere. A write the graph did not declare is
+                        # refused and recorded, not executed.
+                        allowlist = node.get("tools") or []
+                        for tool_name, tool_args in plan:
+                            payload, record = tools.call(tool_name, tool_args, allowlist)
+                            if payload.get("error"):
+                                failed.append({"tool": tool_name, "error": payload["error"]})
+                            else:
+                                applied.append({"tool": tool_name,
+                                                "ref": record.get("ref"),
+                                                "result": payload})
+                        ledger.write(node_id=nid,
+                                     status="ok" if applied and not failed else
+                                            ("failed" if not applied else "partial"),
+                                     started_at=started, ended_at=now(),
+                                     effects=["write"],
+                                     output={"targets": targets, "applied": applied, "failed": failed},
+                                     error=None if not failed else f"{len(failed)} write(s) failed")
+                        print(f"  write_back applied {len(applied)}, failed {len(failed)} "
+                              f"across {len(targets)} dataset(s)")
 
             elif nid == "report":
                 # Relative to the repo, not absolute. The ledger is a published

@@ -260,6 +260,136 @@ def _first_relation(sql: str) -> str:
     return "?"
 
 
+
+# --------------------------------------------------------------------------
+# Write tools
+# --------------------------------------------------------------------------
+# The graph declared four of these and none existed, so `write_back` skipped on
+# every run while the node description claimed the agent "leaves the estate
+# better than it found it". A capability a submission names and never runs is
+# worse than one it never claims.
+#
+# These go through the SDK rather than the MCP bridge, because the read server
+# exposes no write verbs. Two deliberate choices:
+#
+#   1. Descriptions are written to EditableDatasetProperties, never to
+#      DatasetProperties. The ingested description is itself evidence in this
+#      corpus (MTI-003 turns on `Buckets on local time`), and an agent that
+#      overwrote it would destroy the answer key of a case still being scored.
+#      The editable aspect is an overlay: DataHub shows it, ingestion keeps its
+#      own, and nothing is lost.
+#   2. Every write returns the urn it touched as the citation ref, so the same
+#      gate that checks read evidence also checks what the agent changed.
+
+def _emitter():
+    from datahub.ingestion.graph.client import DatahubClientConfig, DataHubGraph
+    return DataHubGraph(DatahubClientConfig(server=GMS_URL, token=os.environ.get("DATAHUB_GMS_TOKEN") or None))
+
+
+def _require(args: dict, key: str) -> str:
+    value = str(args.get(key, "")).strip()
+    if not value:
+        raise ToolError(f"{key} is required")
+    return value
+
+
+def _add_tags(args: dict) -> tuple[object, str]:
+    """Attach root-cause tags to the dataset the verdict implicates."""
+    import datahub.metadata.schema_classes as models
+    from datahub.emitter.mce_builder import make_tag_urn
+    from datahub.emitter.mcp import MetadataChangeProposalWrapper
+
+    urn = _require(args, "urn")
+    tags = args.get("tags") or []
+    if isinstance(tags, str):
+        tags = [tags]
+    if not tags:
+        raise ToolError("tags must be a non-empty list")
+    graph = _emitter()
+    existing = graph.get_aspect(urn, models.GlobalTagsClass)
+    keep = list(existing.tags) if existing else []
+    have = {t.tag for t in keep}
+    added = []
+    for tag in tags:
+        tag_urn = make_tag_urn(str(tag))
+        if tag_urn not in have:
+            keep.append(models.TagAssociationClass(tag=tag_urn))
+            added.append(str(tag))
+    graph.emit(MetadataChangeProposalWrapper(
+        entityUrn=urn, aspect=models.GlobalTagsClass(tags=keep)))
+    return {"urn": urn, "added": added, "total": len(keep)}, urn
+
+
+def _update_description(args: dict) -> tuple[object, str]:
+    """Record the finding as the editable description, leaving ingestion alone."""
+    import datahub.metadata.schema_classes as models
+    from datahub.emitter.mcp import MetadataChangeProposalWrapper
+
+    urn = _require(args, "urn")
+    description = _require(args, "description")
+    graph = _emitter()
+    graph.emit(MetadataChangeProposalWrapper(
+        entityUrn=urn,
+        aspect=models.EditableDatasetPropertiesClass(description=description)))
+    return {"urn": urn, "chars": len(description), "aspect": "editableDatasetProperties"}, urn
+
+
+def _save_document(args: dict) -> tuple[object, str]:
+    """Attach the incident report to the dataset as institutional memory.
+
+    Registered but not yet driven by `write_back`. The report node records the
+    ledger path and does not render an artefact, so there is no stable url to
+    attach, and a link to nothing is worse than no link. Wire this in once the
+    report node produces a document.
+    """
+    import datahub.metadata.schema_classes as models
+    from datahub.emitter.mcp import MetadataChangeProposalWrapper
+
+    urn = _require(args, "urn")
+    url = _require(args, "url")
+    label = str(args.get("label") or "investigation report")
+    graph = _emitter()
+    existing = graph.get_aspect(urn, models.InstitutionalMemoryClass)
+    elements = list(existing.elements) if existing else []
+    if all(e.url != url for e in elements):
+        elements.append(models.InstitutionalMemoryMetadataClass(
+            url=url, description=label,
+            createTime=models.AuditStampClass(time=0, actor="urn:li:corpuser:witness-graph")))
+    graph.emit(MetadataChangeProposalWrapper(
+        entityUrn=urn, aspect=models.InstitutionalMemoryClass(elements=elements)))
+    return {"urn": urn, "documents": len(elements)}, urn
+
+
+def _add_structured_properties(args: dict) -> tuple[object, str]:
+    """Record the implicated upstream as a structured property.
+
+    The property definition is emitted first when missing, because a value
+    written against an undefined property is dropped without an error, which is
+    the same silent-failure shape the tag pre-creation trap has.
+    """
+    import datahub.metadata.schema_classes as models
+    from datahub.emitter.mcp import MetadataChangeProposalWrapper
+
+    urn = _require(args, "urn")
+    values = args.get("properties") or {}
+    if not isinstance(values, dict) or not values:
+        raise ToolError("properties must be a non-empty object")
+    graph = _emitter()
+    assignments = []
+    for key, value in values.items():
+        prop_urn = f"urn:li:structuredProperty:{key}"
+        if graph.get_aspect(prop_urn, models.StructuredPropertyDefinitionClass) is None:
+            graph.emit(MetadataChangeProposalWrapper(
+                entityUrn=prop_urn,
+                aspect=models.StructuredPropertyDefinitionClass(
+                    qualifiedName=key, displayName=key, valueType="urn:li:dataType:datahub.string",
+                    cardinality="SINGLE", entityTypes=["urn:li:entityType:datahub.dataset"])))
+        assignments.append(models.StructuredPropertyValueAssignmentClass(
+            propertyUrn=prop_urn, values=[str(value)]))
+    graph.emit(MetadataChangeProposalWrapper(
+        entityUrn=urn, aspect=models.StructuredPropertiesClass(properties=assignments)))
+    return {"urn": urn, "properties": sorted(values)}, urn
+
 REGISTRY = {
     "datahub.search": _search,
     "datahub.lineage": _lineage,
@@ -269,11 +399,23 @@ REGISTRY = {
     "datahub.queries": _queries,
     "warehouse.query": _warehouse_query,
     "warehouse.schema": _warehouse_schema,
+    "datahub.add_tags": _add_tags,
+    "datahub.update_description": _update_description,
+    "datahub.save_document": _save_document,
+    "datahub.add_structured_properties": _add_structured_properties,
 }
 
 # What the agent is told it can ask for. Kept next to the registry so the two
 # cannot drift apart.
 SIGNATURES = {
+    "datahub.add_tags": 'datahub.add_tags {"urn": "<dataset urn>", "tags": ["<tag>"]} '
+                        "-> attaches root-cause tags. Existing tags are kept. Approval required.",
+    "datahub.update_description": 'datahub.update_description {"urn": "<dataset urn>", "description": "<text>"} '
+                                  "-> writes the editable description. The ingested one is left intact. Approval required.",
+    "datahub.save_document": 'datahub.save_document {"urn": "<dataset urn>", "url": "<link>", "label": "<text>"} '
+                             "-> attaches the report as institutional memory. Approval required.",
+    "datahub.add_structured_properties": 'datahub.add_structured_properties {"urn": "<dataset urn>", "properties": {"<key>": "<value>"}} '
+                                         "-> records the implicated upstream. Defines the property first when missing. Approval required.",
     "datahub.search": 'datahub.search {"query": "<free text>", "count": 10} '
                       "-> matching datasets, jobs and checks. Start here when you need a urn. "
                       "A search result is not a citation: cite the urn you looked up, not the query.",
