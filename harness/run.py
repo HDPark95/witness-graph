@@ -741,19 +741,37 @@ def main() -> int:
                               f"across {len(targets)} dataset(s)")
 
             elif nid == "report":
-                # Relative to the repo, not absolute. The ledger is a published
-                # artefact, and an absolute path bakes in whatever directory the
-                # run happened to execute from: a home directory, a scratch
-                # path, an organisation name sitting in one of its segments.
-                # That is how a batch run put a private path into three ledgers
-                # that were about to ship.
+                # Two things at once. The renderer already existed as a separate
+                # script and nothing called it, so a reviewer who did not run the
+                # code had nothing to open. And paths here are recorded relative
+                # to the repo: the ledger is a published artefact, and an absolute
+                # path bakes in whatever directory the run executed from, which is
+                # how a batch put a private path into three ledgers about to ship.
+                started = now()
+
+                def _rel(path: pathlib.Path) -> str:
+                    try:
+                        return str(path.resolve().relative_to(ROOT))
+                    except ValueError:
+                        return str(pathlib.Path(path.parent.name) / path.name)
+
+                html_path = ledger.path.with_suffix(".html")
                 try:
-                    rel = ledger.path.resolve().relative_to(ROOT)
-                except ValueError:
-                    rel = pathlib.Path(ledger.path.parent.name) / ledger.path.name
-                ledger.write(node_id=nid, status="ok", started_at=now(), ended_at=now(),
-                             effects=[], output={"ledger": str(rel)},
-                             cost={"wall_ms": 0})
+                    import render_run
+                    html = render_run.build(graph, render_run.load_jsonl(ledger.path), case)
+                    html_path.write_text(html, encoding="utf-8")
+                    ledger.write(node_id=nid, status="ok", started_at=started, ended_at=now(),
+                                 effects=[], cost={"wall_ms": 0},
+                                 output={"ledger": _rel(ledger.path),
+                                         "report": _rel(html_path),
+                                         "bytes": html_path.stat().st_size})
+                    print(f"  report: {_rel(html_path)} ({html_path.stat().st_size} bytes)")
+                except Exception as exc:  # noqa: BLE001 - a failed render is not a failed run
+                    ledger.write(node_id=nid, status="partial", started_at=started, ended_at=now(),
+                                 effects=[], cost={"wall_ms": 0},
+                                 output={"ledger": _rel(ledger.path)},
+                                 error=f"render failed: {exc}")
+                    print(f"  report: ledger written, render failed ({exc})")
 
             idx += 1
 
