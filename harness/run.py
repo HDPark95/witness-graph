@@ -689,11 +689,31 @@ def main() -> int:
                     # instead would let it invent one, and the write would follow.
                     cited = set(verdict.get("cited_witnesses") or [])
                     by_id = {w.get("id"): w for w in state.get("witnesses", [])}
-                    targets = []
-                    for wid in cited:
-                        ref = ((by_id.get(wid) or {}).get("source") or {}).get("ref", "")
-                        if ref.startswith("urn:li:dataset:") and ref not in targets:
-                            targets.append(ref)
+
+                    def datasets_for(ids) -> list[str]:
+                        out = []
+                        for wid in sorted(ids):
+                            ref = ((by_id.get(wid) or {}).get("source") or {}).get("ref", "")
+                            if ref.startswith("urn:li:dataset:") and ref not in out:
+                                out.append(ref)
+                        return out
+
+                    # Cited is the set that was opened. It is not the set the fault is
+                    # in. On MTI-002 the verdict cites twelve witnesses resolving to
+                    # five datasets, and three of those five are the deploy log, the
+                    # definition history and the migration log: assets read precisely
+                    # to rule those explanations out. Tagging all five with
+                    # `bot_traffic_mixed` brands the exonerating evidence as the
+                    # culprit, which leaves the catalog worse than it found it.
+                    #
+                    # `implicated_witnesses` narrows it, and is ids only so the agent
+                    # picks from what it already cited instead of naming a urn it
+                    # could invent. Anything cited and not implicated is still marked,
+                    # but as examined rather than as the cause.
+                    implicated_ids = set(verdict.get("implicated_witnesses") or []) & cited
+                    implicated = datasets_for(implicated_ids)
+                    examined = [d for d in datasets_for(cited) if d not in implicated]
+                    targets = implicated + examined
                     if not targets:
                         ledger.write(node_id=nid, status="skipped", started_at=started,
                                      ended_at=now(), effects=[],
@@ -711,13 +731,26 @@ def main() -> int:
                         # report node writes no artefact, so there is no document to
                         # attach and a link to nothing is worse than no link.
                         note = (verdict.get("narrative") or "").strip() or "Investigated by witness-graph."
+                        cause = verdict.get("root_cause_key", "unclassified")
                         plan = []
-                        for target in targets:
+                        # Two write kinds, deliberately unequal. An implicated asset
+                        # gets the accusation and the finding. An examined asset gets
+                        # a note that it was looked at, and nothing else: overwriting
+                        # its description with a narrative about a fault it does not
+                        # have is the same error as the tag, one field over.
+                        #
+                        # Prefixes so a catalog reader can tell the two apart, and so
+                        # both are attributable to this system rather than appearing
+                        # as bare vocabulary someone on the data team chose.
+                        for target in implicated:
                             plan.append(("datahub.add_tags",
-                                         {"urn": target,
-                                          "tags": [verdict.get("root_cause_key", "unclassified")]}))
+                                         {"urn": target, "tags": [f"root-cause:{cause}"]}))
                             plan.append(("datahub.update_description",
                                          {"urn": target, "description": note}))
+                        for target in examined:
+                            plan.append(("datahub.add_tags",
+                                         {"urn": target,
+                                          "tags": ["witness-graph:examined"]}))
                         # The node's own allowlist governs the writes, exactly as it
                         # governs reads elsewhere. A write the graph did not declare is
                         # refused and recorded, not executed.
@@ -735,10 +768,19 @@ def main() -> int:
                                             ("failed" if not applied else "partial"),
                                      started_at=started, ended_at=now(),
                                      effects=["write"],
-                                     output={"targets": targets, "applied": applied, "failed": failed},
+                                     # Both lists, not just the union. A run that
+                                     # implicates everything it opened has not
+                                     # localised anything, and that has to be
+                                     # readable off the ledger rather than inferred
+                                     # from the catalog afterwards.
+                                     output={"targets": targets,
+                                             "implicated": implicated,
+                                             "examined": examined,
+                                             "applied": applied, "failed": failed},
                                      error=None if not failed else f"{len(failed)} write(s) failed")
                         print(f"  write_back applied {len(applied)}, failed {len(failed)} "
-                              f"across {len(targets)} dataset(s)")
+                              f"across {len(implicated)} implicated and "
+                              f"{len(examined)} examined dataset(s)")
 
             elif nid == "report":
                 # Two things at once. The renderer already existed as a separate
