@@ -14,7 +14,7 @@ commit to a verdict until every hypothesis has been argued against.
 Built for [Build with DataHub: The Agent Hackathon](https://datahub.devpost.com/),
 track: AI agents handling data problems.
 
-**[Read a scored investigation without cloning anything →](https://renechoi.github.io/witness-graph/)**
+**[Read a scored investigation without cloning anything →](https://hdpark95.github.io/witness-graph/)**
 That page is generated from the committed run ledgers, so every figure on it is
 the scorer's output rather than a number we typed.
 

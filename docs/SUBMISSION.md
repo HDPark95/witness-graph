@@ -28,9 +28,10 @@ not.
 Witness Graph takes one symptom, walks the DataHub lineage above the affected
 metric, forms competing hypotheses, gathers evidence for each, and refuses to
 commit to a verdict until every hypothesis has been argued against. The
-write-back path that returns the finding to the catalog is drafted and gated
-behind approval; the write tools are connected in a pending change, and until it
-lands an approved run records what it would have written.
+write-back path that returns the finding to the catalog is connected and gated
+behind approval: with approval, a run tags the datasets its verdict cited and
+records the finding as their editable description. Without approval nothing
+downstream of the approval node runs at all, which is the default.
 
 It answers with one of four verdicts: instrument failure, upstream data defect,
 customer behaviour, or definition change.
@@ -76,19 +77,19 @@ can discover that asset, which is a gap two assertions passed through.
     citation recall                  0.833
     hypothesis refutation rate       1.0
     unapproved effects               0
-    disallowed tool calls            1
+    disallowed tool calls            0
 
     lift over majority-class baseline   +0.455  (verdict)
     lift over majority-class baseline   +0.909  (root cause)
 
+These are the three ledgers committed to `runs/`, recomputed by `harness/score.py`
+when the project page was built. Three is a small sample and the accuracies read
+that way; the remaining eight are running and these figures are replaced by the
+full set.
+
 The baseline is the agent that always answers the most common verdict. Reporting
 lift rather than raw accuracy is the point: on this corpus a detector that never
 investigates already scores 0.545.
-
-The single disallowed tool call is not noise to be tuned away. A node reached for
-a tool its declaration did not grant, and the harness refused it and wrote the
-refusal into the ledger. A run that cannot violate its own permissions is the
-claim; a run that is observed failing to is the evidence.
 
 ## Challenges
 
@@ -126,7 +127,7 @@ Python, DataHub, DataHub MCP server, SQLite, JSON Schema, Anthropic Claude.
 
 ## Try it out
 
-**Project URL: https://renechoi.github.io/witness-graph/**
+**Project URL: https://hdpark95.github.io/witness-graph/**
 
 Every figure on that page is the output of `harness/score.py`, run when the page
 was built, so the site cannot disagree with the repository. Each case links to
