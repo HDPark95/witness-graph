@@ -10,3 +10,7 @@ warehouse/
 
 # Scratch logs from batch runs.
 /tmp-*.log
+
+# The evidence site is rebuilt from the ledgers, so the bytes are derived data:
+#   python3 docs/site/build.py --out _site
+_site/

@@ -1,0 +1,52 @@
+name: Publish the run evidence site
+
+# The rules ask for a URL a judge can open to test the project. The DataHub
+# instance is local, so the site publishes what travels: the rendered run
+# pages and the scorer's own output over the committed ledgers.
+#
+# Nothing generated is committed. The site is rebuilt from the ledgers on
+# every push, which means it cannot quietly disagree with the repository.
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install pyyaml
+      - name: Build the site from the committed ledgers
+        run: python3 docs/site/build.py --out _site
+      - name: Refuse to publish a page that leaks a local path
+        run: |
+          if grep -rIlE '/(Users|home)/[a-z]' _site/; then
+            echo "a local path reached the published site"; exit 1
+          fi
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
