@@ -27,9 +27,10 @@ not.
 
 Witness Graph takes one symptom, walks the DataHub lineage above the affected
 metric, forms competing hypotheses, gathers evidence for each, and refuses to
-commit to a verdict until every hypothesis has been argued against. With
-approval, it writes the finding back onto the implicated dataset so the next
-investigation starts where this one finished.
+commit to a verdict until every hypothesis has been argued against. The
+write-back path that returns the finding to the catalog is drafted and gated
+behind approval; the write tools are connected in a pending change, and until it
+lands an approved run records what it would have written.
 
 It answers with one of four verdicts: instrument failure, upstream data defect,
 customer behaviour, or definition change.
@@ -61,9 +62,11 @@ and a fourth is a definition change rather than a defect. They exist because a
 benchmark made only of broken pipelines measures bias instead of judgement: an
 agent that always answers "instrument failure" scores 6 of 11.
 
-`harness/audit_citability.py` asserts that every asset an answer key requires is
-reachable by some tool the agent has. It found four cases whose keys pointed at
-assets nothing published, and it now fails the build if that recurs.
+`harness/audit_citability.py` asserts that every asset an answer key requires
+exists in the warehouse, or in the catalog under a name the scorer can match. It
+found four cases whose keys pointed at assets nothing published, and it fails the
+build if that recurs. It does not yet check that a tool in the node's allowlist
+can discover that asset, which is a gap two assertions passed through.
 
 ## Results `[3/11]`
 
@@ -73,7 +76,7 @@ assets nothing published, and it now fails the build if that recurs.
     citation recall                  0.833
     hypothesis refutation rate       1.0
     unapproved effects               0
-    disallowed tool calls            0
+    disallowed tool calls            1
 
     lift over majority-class baseline   +0.455  (verdict)
     lift over majority-class baseline   +0.909  (root cause)
@@ -81,6 +84,11 @@ assets nothing published, and it now fails the build if that recurs.
 The baseline is the agent that always answers the most common verdict. Reporting
 lift rather than raw accuracy is the point: on this corpus a detector that never
 investigates already scores 0.545.
+
+The single disallowed tool call is not noise to be tuned away. A node reached for
+a tool its declaration did not grant, and the harness refused it and wrote the
+refusal into the ledger. A run that cannot violate its own permissions is the
+claim; a run that is observed failing to is the evidence.
 
 ## Challenges
 
@@ -91,7 +99,9 @@ compared logical names against urns and the two vocabularies had never met. A
 second run refuted the correct hypothesis on sound evidence, because the defect
 lived in a view definition and nothing in the tool descriptions said view text
 was readable. A third case asked the agent to cite a job that the estate builder
-constructed and never published.
+constructed and never published. A fourth pointed at an assertion that was in the
+catalog and discoverable by no tool at all, because search does not return that
+entity type. A fifth described a symptom in data the generator never seeded.
 
 Each looked like the agent reasoning badly. Each was the harness failing to say
 what was available. We fixed the harness and the same model started answering.
@@ -119,3 +129,6 @@ Python, DataHub, DataHub MCP server, SQLite, JSON Schema, Anthropic Claude.
 Repository, Apache 2.0. `README.md` explains the method without requiring a
 checkout, and `harness/score.py` recomputes every number in this submission from
 the run ledgers.
+
+Project URL: the self-contained run page published as a static site, so a
+reviewer can read one full investigation end to end without cloning anything.
