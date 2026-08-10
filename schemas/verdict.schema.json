@@ -4,10 +4,18 @@
   "title": "Adjudication",
   "description": "The graph's answer. Deliberately narrow: the agent must commit to one class, name a root cause, and cite witnesses by id. Free-form prose is not accepted as an answer.",
   "type": "object",
-  "required": ["case_id", "verdict", "root_cause_key", "cited_witnesses", "alternatives_rejected"],
+  "required": [
+    "case_id",
+    "verdict",
+    "root_cause_key",
+    "cited_witnesses",
+    "alternatives_rejected"
+  ],
   "additionalProperties": false,
   "properties": {
-    "case_id": { "type": "string" },
+    "case_id": {
+      "type": "string"
+    },
     "verdict": {
       "enum": [
         "customer_behavior",
@@ -29,27 +37,50 @@
     "cited_witnesses": {
       "type": "array",
       "minItems": 1,
-      "items": { "type": "string", "pattern": "^e[0-9]+$" },
+      "items": {
+        "type": "string",
+        "pattern": "^e[0-9]+$"
+      },
       "description": "Witness ids. The scorer intersects this with the case's `must_cite` set to compute citation recall, and verifies every id exists in the ledger to compute citation precision."
+    },
+    "implicated_witnesses": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^e[0-9]+$"
+      },
+      "description": "The subset of `cited_witnesses` whose assets the root cause is actually in. Optional, and ids only: the agent selects from witnesses it already cited rather than naming an asset, so it cannot invent a write target. Everything cited and not listed here was opened as evidence and, in most runs, cleared. The write-back path uses this to separate the two, because tagging an asset with a root cause it was examined to rule out makes the catalog worse rather than better. Omit it when the fault is not localised to a specific asset."
     },
     "alternatives_rejected": {
       "type": "array",
       "minItems": 1,
       "items": {
         "type": "object",
-        "required": ["hypothesis", "refuted_by"],
+        "required": [
+          "hypothesis",
+          "refuted_by"
+        ],
         "additionalProperties": false,
         "properties": {
-          "hypothesis": { "type": "string" },
+          "hypothesis": {
+            "type": "string"
+          },
           "refuted_by": {
             "type": "array",
-            "items": { "type": "string", "pattern": "^e[0-9]+$" },
+            "items": {
+              "type": "string",
+              "pattern": "^e[0-9]+$"
+            },
             "description": "Witness ids that argue against this hypothesis. An empty list means the agent dismissed an alternative without evidence, which the gate rejects."
           }
         }
       },
       "description": "Forces the agent to show what it ruled out and why. A verdict with no rejected alternatives is a guess with a confident tone."
     },
-    "confidence": { "type": "number", "minimum": 0, "maximum": 1 }
+    "confidence": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1
+    }
   }
 }
