@@ -1,9 +1,8 @@
 # Devpost submission draft
 
-Paste-ready text for the submission form. The section marked `[3 of 11 cases]`
-comes from the three runs whose ledgers are committed, and is replaced when the
-full batch lands. The sample restriction is stated there rather than buried,
-because those three share a verdict label and that changes how the lift reads.
+Paste-ready text for the submission form. Every figure in Results comes from
+`harness/score.py` over the ledgers committed in `runs/`, and the sample it
+covers is named in the heading rather than left to be inferred.
 
 ---
 
@@ -71,42 +70,53 @@ found four cases whose keys pointed at assets nothing published, and it fails th
 build if that recurs. It does not yet check that a tool in the node's allowlist
 can discover that asset, which is a gap two assertions passed through.
 
-## Results `[3 of 11 cases]`
+## Results `[10 of 11 cases]`
 
-Three cases have committed ledgers in `runs/`. Everything below is what
+Ten cases have committed ledgers in `runs/`. Everything below is what
 `harness/score.py` recomputes from them, and can be reproduced with one command.
 
-    verdict accuracy                 1.0
-    root cause accuracy              1.0
+    verdict accuracy                 0.5
+    root cause accuracy              0.6
     citation precision               1.0
-    citation recall                  0.833
+    citation recall                  0.767
     hypothesis refutation rate       1.0
+    lucky guess rate                 0.4
+    confidently wrong rate           0.2
     unapproved effects               0
-    disallowed tool calls            0
+    disallowed tool calls            1
 
-**Read the lift carefully, because these three are not a representative
-sample.** All three carry the same verdict label, `instrument_failure`, which is
-also the most common label in the corpus. Measured against the full eleven-case
-corpus the majority-class baseline is 0.545 on the verdict and 0.091 on the root
-cause, which would make our lift +0.455 and +0.909. Measured against the three
-cases actually scored, the same lazy agent gets 1.000 on the verdict and 0.333 on
-the root cause:
+**The two accuracies point in opposite directions, and that is the finding.**
+Against the ten cases scored, an agent that always guesses the most common label
+scores 0.6 on the verdict and 0.1 on the root cause:
 
-    verdict lift, on the cases actually scored      +0.000
-    root cause lift, on the cases actually scored   +0.667
+    verdict lift        -0.100
+    root cause lift     +0.500
 
-Root cause is the headline number, and it survives the correction: naming the
-specific fault is not something you reach by guessing a label. The verdict figure
-does not survive it. Quoting the +0.455 would be precisely the deck-stacking that
-publishing a baseline exists to expose, so we report the number that holds.
+Naming the specific fault is where the graph earns its keep. Six of ten, against
+one in ten for a guess, on a corpus where the eleven root causes are all
+distinct. Picking the four-way label is where it does not: on the verdict it is
+slightly worse than answering "instrument failure" every time and going home.
 
-Two of these three were reached without the lucky-guess flag, and the third,
-MTI-001, is flagged: it named the right fault while its citation recall was 0.5.
-That flag is in the output above rather than smoothed out of it.
+The gap is one case wide and it is instructive. MTI-007 named
+`collation_join_break` correctly and filed it as an instrument failure when the
+key says upstream data defect. The investigation found the fault; the taxonomy
+question is a separate skill and the harness does not currently help with it. We
+are reporting the lift that is negative rather than the one that flatters,
+because a baseline you publish and then quote selectively is not a baseline.
 
-Three is a small sample and the accuracies read that way. The remaining eight are
-running, and these figures are replaced by the full set, at which point the two
-baselines coincide and the distinction above stops mattering.
+Four of the ten are flagged as lucky guesses: right answer, without touching the
+evidence a correct investigation cannot avoid. That is 40 percent of the wins
+arriving for the wrong reason, and it is in the output above rather than folded
+into the accuracy. Two are confidently wrong, meaning they named a cause the case
+explicitly rules out, which we score as worse than abstaining.
+
+`safety_clean` is false. One tool call was refused: a node reached for a tool its
+declaration never granted, the runtime rejected it, and the ledger recorded the
+attempt. That number stays visible. A run that cannot violate its permissions is
+a claim, and a run observed being stopped from violating them is evidence.
+
+MTI-010 has no ledger and is excluded rather than counted as a miss.
+`cases_without_runs` names it in the scorer output.
 
 
 ## Challenges
