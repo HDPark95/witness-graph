@@ -1,9 +1,9 @@
 # Devpost submission draft
 
-Paste-ready text for the submission form. The section marked `[3 of 11 cases]`
-comes from the three runs whose ledgers are committed, and is replaced when the
-full batch lands. The sample restriction is stated there rather than buried,
-because those three share a verdict label and that changes how the lift reads.
+Paste-ready text for the submission form. The section marked `[10 of 11 cases]`
+comes from the ten runs whose ledgers are committed. The eleventh, MTI-010, is
+absent because its run ended when the API stayed unreachable for fifteen
+minutes, and a ledger that records an outage is not evidence about an agent.
 
 ---
 
@@ -71,42 +71,56 @@ found four cases whose keys pointed at assets nothing published, and it fails th
 build if that recurs. It does not yet check that a tool in the node's allowlist
 can discover that asset, which is a gap two assertions passed through.
 
-## Results `[3 of 11 cases]`
+## Results `[10 of 11 cases]`
 
-Three cases have committed ledgers in `runs/`. Everything below is what
+Ten cases have committed ledgers in `runs/`. Everything below is what
 `harness/score.py` recomputes from them, and can be reproduced with one command.
 
-    verdict accuracy                 1.0
-    root cause accuracy              1.0
-    citation precision               1.0
-    citation recall                  0.833
-    hypothesis refutation rate       1.0
+    verdict accuracy                 0.500
+    root cause accuracy              0.600
+    citation precision               1.000
+    citation recall                  0.767
+    hypothesis refutation rate       1.000
+    abstention rate                  0.000
+    lucky guess rate                 0.400
+    confidently wrong rate           0.200
     unapproved effects               0
-    disallowed tool calls            0
+    out-of-scope calls refused       1
+    out-of-scope calls executed      0
 
-**Read the lift carefully, because these three are not a representative
-sample.** All three carry the same verdict label, `instrument_failure`, which is
-also the most common label in the corpus. Measured against the full eleven-case
-corpus the majority-class baseline is 0.545 on the verdict and 0.091 on the root
-cause, which would make our lift +0.455 and +0.909. Measured against the three
-cases actually scored, the same lazy agent gets 1.000 on the verdict and 0.333 on
-the root cause:
+    verdict lift, against the lazy agent on these same cases      -0.100
+    root cause lift, against the lazy agent on these same cases   +0.500
 
-    verdict lift, on the cases actually scored      +0.000
-    root cause lift, on the cases actually scored   +0.667
+**The verdict lift is negative, and we are publishing it rather than the
+flattering version we could have published.** An agent that always answers
+`instrument_failure` scores 0.600 on these ten cases. Ours scores 0.500. On the
+coarse question of which kind of failure this is, our graph is worse than a
+constant.
 
-Root cause is the headline number, and it survives the correction: naming the
-specific fault is not something you reach by guessing a label. The verdict figure
-does not survive it. Quoting the +0.455 would be precisely the deck-stacking that
-publishing a baseline exists to expose, so we report the number that holds.
+The reason is in the ledgers rather than inferred from them. Our agent answered
+`instrument_failure` on 8 of 10 cases where the answer key says 6, and it failed
+every control: MTI-008 and MTI-011, where customers really did change, and
+MTI-009, where the metric definition widened underneath the number. Those
+controls exist because a benchmark made only of broken pipelines measures bias
+instead of judgement. They measured ours, and we did not pass.
 
-Two of these three were reached without the lucky-guess flag, and the third,
-MTI-001, is flagged: it named the right fault while its citation recall was 0.5.
-That flag is in the output above rather than smoothed out of it.
+Root cause is the headline number and it survives. Naming the specific fault
+scores 0.600 against 0.100 for the same lazy agent, a lift of +0.500, because
+the eleven root causes are all distinct and no amount of label-guessing reaches
+one. MTI-007 is the clearest single case: wrong verdict, right root cause, which
+is not a combination a label-guesser produces.
 
-Three is a small sample and the accuracies read that way. The remaining eight are
-running, and these figures are replaced by the full set, at which point the two
-baselines coincide and the distinction above stops mattering.
+Two more numbers are ours to own. The lucky guess rate is 0.400, meaning four
+runs landed on the right answer without the citation recall a correct
+investigation implies. The confidently wrong rate is 0.200. Both are computed
+from the ledger, both are on the project page, and neither is smoothed away.
+
+Earlier in the build only three ledgers were committed. All three carried the
+same label, all three were correct, and against the full-corpus baseline they
+read +0.455 and +0.909. Those numbers were true and they were not
+representative. The scorer that produced them is the scorer that produced the
+ones above, unchanged, and it is the artifact being submitted. A harness that
+cannot report its own author's agent failing is not a harness.
 
 
 ## Challenges
@@ -164,6 +178,25 @@ python3 harness/check_submission.py --warehouses warehouse/
 
 The last command is the one worth running. It fails the build when the
 repository is not in a state a judge could evaluate: a node declaring a tool
-that is not registered, a committed ledger that answers its own case wrongly, a
-case corpus that no longer regenerates identically, a local path leaking into a
-ledger. Each of those is a defect it caught here, not a hypothetical.
+that is not registered, a case corpus that no longer regenerates identically, a
+local path leaking into a ledger, a ledger naming a report file the repository
+does not contain. Each of those is a defect it caught here, not a hypothetical.
+
+It does not fail on a ledger that answered its own case wrongly. It did until we
+finished the corpus, and that was a mistake worth describing: `runs/` began as a
+handful of correct ledgers chosen to show the system working, and asserting they
+matched their keys made sense. Once `runs/` became the scored corpus, the same
+assertion meant the build broke whenever the agent was wrong. **A benchmark that
+only passes its own checker at 100 percent accuracy cannot report anything
+lower.** Wrong answers are now counted and printed on their own summary line, and
+correctness is still asserted for the one ledger the README walks through by
+name, so the check that documentation still matches the artifact survives.
+
+The two safety counts split for the same reason. `disallowed_tool_calls_attempted`
+records the agent reaching outside its node's allowlist and being refused before
+dispatch; `disallowed_tool_calls_executed` records a refusal that failed to hold.
+Only the second is a safety failure, and only the second is read by
+`safety_clean`. In this corpus attempted is 1 and executed is 0: `adjudicate`
+asked for `warehouse.query`, which it does not declare, and the runtime rejected
+it. Counting that as a violation read a working boundary as a broken one. Both
+numbers stay published, because the fix here is to split the count, not to lose it.

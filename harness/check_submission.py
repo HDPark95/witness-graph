@@ -6,6 +6,21 @@ point during the build, and each one was found by hand. Judging happens against
 whatever is on the default branch at the deadline, so the checks that matter are
 the ones a reviewer performs without asking us anything: clone, read, run.
 
+**This checks evaluability, not accuracy. A wrong answer in a shipped ledger is
+the benchmark's output, not a defect in the repository.**
+
+That distinction had to be made explicit on 2026-08-09. `runs/` originally held
+a few correct ledgers chosen to show the system working, and asserting they
+matched their answer keys was reasonable. `runs/` is now the scored corpus of
+all eleven cases, and the same assertion meant the build broke whenever the
+agent got a case wrong. A benchmark that only passes its own checker at 100
+percent accuracy cannot report anything less, which would make every published
+number suspect.
+
+So correctness is asserted for exactly one designated demonstration ledger, and
+reported as a counted warning for the rest. Structural integrity, which is what
+"can a judge evaluate this" actually means, stays a hard failure.
+
     python3 harness/check_submission.py [--warehouses DIR]
 
 Exits non-zero on any failure. Warnings do not fail the run.
@@ -23,6 +38,22 @@ sys.path.insert(0, str(HERE))
 
 FAILURES: list[str] = []
 WARNINGS: list[str] = []
+# Counted so downgrading these to warnings cannot make them disappear quietly.
+# The summary line prints them whether or not anyone reads the warning list.
+wrong_verdicts: list[str] = []
+wrong_causes: list[str] = []
+
+# The one ledger whose answer is asserted rather than merely reported.
+#
+# MTI-003 because the README walks a reader through it by name: it is the
+# timezone case, it is the worked example in the lineage section, and it is the
+# ledger the "two ledgers for the same case" comparison scores against
+# runs-sonnet/. If that specific run stopped answering correctly, the
+# documentation would be describing something the repository no longer does,
+# and that IS a state a judge cannot evaluate.
+#
+# Every other case is scored, not asserted. Their correctness is the result.
+DEMO_CASE = "MTI-003"
 
 
 def fail(msg: str) -> None:
@@ -145,21 +176,45 @@ def check_evidence_is_current() -> None:
             warn(f"{path.relative_to(ROOT)} has no adjudication; it reads as an abstention")
             continue
         got = adjudications[-1].get("output", {})
+        # Asserted for the demonstration ledger, counted for the rest. See
+        # DEMO_CASE for why one case is treated differently, and the module
+        # docstring for why the rest are not failures at all.
+        report = fail if case_id == DEMO_CASE else warn
+        note = (
+            "; the README walks a reader through this run by name"
+            if case_id == DEMO_CASE
+            else "; scored, not asserted"
+        )
         if got.get("verdict") != truth["verdict"]:
-            fail(
+            wrong_verdicts.append(case_id)
+            report(
                 f"{path.relative_to(ROOT)} answers `{got.get('verdict')}` where the key says "
-                f"`{truth['verdict']}`; a reviewer running score.py sees this run fail"
+                f"`{truth['verdict']}`{note}"
             )
         # The root cause is the headline metric, and it is the harder half: the
         # eleven causes are all distinct, so guessing the most common one scores
-        # 0.091 against 0.545 for the most common verdict. A shipped ledger that
-        # gets the label right and the cause wrong still reports a failure on the
-        # number the README asks a reader to look at first.
+        # 0.091 against 0.545 for the most common verdict.
         if got.get("root_cause_key") != truth["root_cause_key"]:
-            fail(
+            wrong_causes.append(case_id)
+            report(
                 f"{path.relative_to(ROOT)} names root cause `{got.get('root_cause_key')}` "
-                f"where the key says `{truth['root_cause_key']}`; that is the headline metric"
+                f"where the key says `{truth['root_cause_key']}`{note}"
             )
+
+        # A ledger that names an artefact the repository does not contain is a
+        # dangling reference, and that IS a structural failure: a judge reading
+        # the ledger goes looking for the file and does not find it.
+        for rec in verdicts:
+            out = rec.get("output")
+            if not isinstance(out, dict):
+                continue
+            for key in ("report", "ledger"):
+                named = out.get(key)
+                if isinstance(named, str) and named and not (ROOT / named).exists():
+                    fail(
+                        f"{path.relative_to(ROOT)} records `{key}: {named}`, which is not in "
+                        f"the repository; the ledger points at an artefact a judge cannot open"
+                    )
 
 
 def check_cases_regenerate_identically() -> None:
@@ -247,6 +302,16 @@ def main() -> int:
         print(f"WARN  {w}")
     for f in FAILURES:
         print(f"FAIL  {f}")
+    # Printed unconditionally, including the zero case. These stopped being
+    # failures on 2026-08-09 because they are the benchmark's result rather
+    # than a broken repository, and a number that stops failing must not also
+    # stop being visible.
+    print(
+        f"benchmark result (not a build failure): "
+        f"{len(wrong_verdicts)} wrong verdict(s), {len(wrong_causes)} wrong root cause(s)"
+        + (f" -> {', '.join(sorted(set(wrong_verdicts + wrong_causes)))}"
+           if (wrong_verdicts or wrong_causes) else "")
+    )
     print(f"{len(FAILURES)} failure(s), {len(WARNINGS)} warning(s)")
     return 1 if FAILURES else 0
 

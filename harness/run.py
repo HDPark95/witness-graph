@@ -42,6 +42,12 @@ MAX_TURNS_PER_NODE = 14
 # concurrent calls on one box. Under that load a call can sit well past
 # three minutes without being stuck.
 LLM_TIMEOUT = 300
+# How long the API may stay unreachable before the run is abandoned as an
+# infrastructure failure rather than recorded as an agent that did not answer.
+# Generous on purpose: this box shares one rate limit with other sessions, and
+# waiting fifteen minutes is cheaper than re-running a case that takes an hour.
+MAX_TRANSPORT_STALL_SECONDS = 900
+TRANSPORT_BACKOFF_CAP = 120
 
 
 def now() -> str:
@@ -57,9 +63,30 @@ def digest(obj) -> str:
 class LLMFailure(Exception):
     """The model call did not come back usable.
 
-    Absorbed by the node loop as a spent turn rather than killing the run: an
-    investigation that dies because one call flaked tells us nothing about the
-    graph, and a benchmark that cannot finish unattended is not a benchmark.
+    `transport` separates the two reasons that can happen, because they deserve
+    opposite handling. A transport failure means the call never reached a model
+    or never came back: a rate limit, a timeout, a non-zero exit. The model did
+    not misbehave, so it must not cost a contract turn. Everything else means a
+    model did answer and answered badly, which is exactly what the turn budget
+    exists to bound.
+
+    Charging transport failures to the turn budget cost three cases on
+    2026-08-09: fourteen consecutive rate-limit rejections burned a whole node's
+    budget in seconds, and the run was recorded as an agent that could not
+    answer.
+    """
+
+    def __init__(self, message: str, transport: bool = True):
+        super().__init__(message)
+        self.transport = transport
+
+
+class InfrastructureFailure(Exception):
+    """The API stayed unreachable long enough that the run cannot continue.
+
+    Distinct from BudgetExceeded on purpose. An exhausted budget is a fact about
+    the agent and is scored as an abstention; this is a fact about the box, and
+    a ledger that ends this way is not evidence about the agent at all.
     """
 
 
@@ -143,18 +170,20 @@ def llm(prompt: str) -> tuple[str, dict]:
             stdin=subprocess.DEVNULL,
         )
     except subprocess.TimeoutExpired as exc:
-        # A hung call is a spent turn, not a dead run. This killed three cases
-        # mid-investigation and the ledger recorded them as if they had simply
-        # stopped, which reads as an abstention the agent never made.
         raise LLMFailure(f"call exceeded {LLM_TIMEOUT}s") from exc
     try:
         payload = json.loads(proc.stdout) if proc.stdout.strip() else {}
     except json.JSONDecodeError as exc:
         raise LLMFailure(f"unparseable CLI output: {exc}") from exc
     if proc.returncode != 0 or payload.get("subtype") != "success":
+        # `error_max_turns` is the one failure here the model earned: it was
+        # reached, it ran, and it spent its own CLI turns without concluding.
+        # Every other shape means the call did not complete, so the turn budget
+        # must not pay for it.
+        subtype = payload.get("subtype")
         raise LLMFailure(
-            f"rc={proc.returncode} subtype={payload.get('subtype')} "
-            f"stderr={proc.stderr[:200]}"
+            f"rc={proc.returncode} subtype={subtype} stderr={proc.stderr[:200]}",
+            transport=(subtype != "error_max_turns"),
         )
     usage = payload.get("usage") or {}
     cost = {
@@ -385,19 +414,45 @@ def run_agent(node: dict, state: dict, ledger: Ledger, schema: dict,
     started = now()
     instruction = INSTRUCTIONS.get(node["id"], "")
 
-    for attempt in range(1, MAX_TURNS_PER_NODE + 1):
+    # `attempt` counts turns the model actually took. A call that never came
+    # back does not advance it, so an outage stalls the node instead of
+    # consuming it.
+    attempt = 0
+    transport_fails = 0
+    stalled_since = None
+    while attempt < MAX_TURNS_PER_NODE:
         ledger.check_budget()
         prompt = build_prompt(node, view, schema, transcript, allowlist, instruction,
-                              MAX_TURNS_PER_NODE - attempt + 1)
+                              MAX_TURNS_PER_NODE - attempt)
         try:
             text, cost = llm(prompt)
         except LLMFailure as exc:
-            violations.append(f"turn {attempt}: model call failed ({exc})")
-            transcript.append(
-                "### runtime\nYour previous attempt did not return an answer. Do not attempt "
-                "any tool yourself. Reply with one JSON object only."
-            )
+            if not exc.transport:
+                attempt += 1
+                violations.append(f"turn {attempt}: model call failed ({exc})")
+                transcript.append(
+                    "### runtime\nYour previous attempt did not return an answer. Do not "
+                    "attempt any tool yourself. Reply with one JSON object only."
+                )
+                continue
+            transport_fails += 1
+            stalled_since = stalled_since or time.time()
+            stalled = time.time() - stalled_since
+            if stalled >= MAX_TRANSPORT_STALL_SECONDS:
+                raise InfrastructureFailure(
+                    f"node {node['id']}: {transport_fails} consecutive transport "
+                    f"failures over {int(stalled)}s; last was {exc}"
+                )
+            # Back off rather than spin. The usual cause is a shared rate limit,
+            # and hammering it neither clears it nor tells us anything.
+            wait = min(TRANSPORT_BACKOFF_CAP, 5 * 2 ** min(transport_fails - 1, 6))
+            print(f"  {node['id']}: transport failure {transport_fails}, "
+                  f"retrying in {wait}s ({int(stalled)}s stalled)")
+            time.sleep(wait)
             continue
+        transport_fails = 0
+        stalled_since = None
+        attempt += 1
         for k in cost_total:
             cost_total[k] += cost.get(k, 0)
 
@@ -783,6 +838,15 @@ def main() -> int:
                      effects=[], error=f"budget exceeded: {exc}")
         print(f"  ABORTED: {exc}")
         return 3
+    except InfrastructureFailure as exc:
+        # Separate exit code so a caller can refuse to publish this ledger. It
+        # records that the API was down, and scoring it as an abstention would
+        # attribute an outage to the agent.
+        ledger.write(node_id="infrastructure", status="aborted", started_at=now(),
+                     ended_at=now(), effects=[],
+                     error=f"infrastructure_failure: {exc}")
+        print(f"  INFRASTRUCTURE FAILURE: {exc}")
+        return 4
 
     print(f"  ledger: {ledger.path}  ({ledger.seq} records, {ledger.tool_calls} tool calls)")
     return 0

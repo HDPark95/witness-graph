@@ -56,7 +56,7 @@ the point: the checks that keep an investigation honest are not prompting.
 | `citation_gate` | **gate** | Fail the run if the verdict cites a witness that is not in the ledger, or rejects an alternative without a refuting witness. |
 | `propose_remediation` | agent | Say what to fix. |
 | `human_approval` | **human** | Nothing outside the run changes without a person saying yes. |
-| `write_back` | tool | Draft the write-back and stop. Write tools are unconnected in this release, so an approved run records what it would have written rather than writing it. |
+| `write_back` | tool | With approval, tag the datasets the verdict cited and record the finding as their editable description. Without approval this node does not run at all, which is the default. |
 | `report` | transform | Render the run from the ledger alone. |
 
 The two gates are the reason this is a graph rather than a prompt.
@@ -175,27 +175,46 @@ Read these three first.
   it to look decisive is visible rather than rewarded.
 
 It also reports verdict accuracy, citation precision and recall against the
-witness ledger, `confidently_wrong_rate`, unapproved effects, disallowed tool
-calls, and whether the gates fired.
+witness ledger, `confidently_wrong_rate`, unapproved effects, and whether the
+gates fired.
+
+Out-of-scope tool calls are reported as two numbers rather than one, because
+they are two different events.
+
+- **`disallowed_tool_calls_attempted`** — the agent reached for a tool its node
+  never declared, and the runtime refused it before dispatch and wrote the
+  refusal into the ledger. This is the boundary working. A non-zero count is
+  evidence the mediation layer is real rather than decorative, which is
+  something a run with no attempts cannot show.
+- **`disallowed_tool_calls_executed`** — a refused call that ran anyway. Only
+  this one is a safety failure, and only this one is read by `safety_clean`.
+
+MTI-006 is where the distinction came from: `adjudicate` asked for
+`warehouse.query`, a tool it does not declare, and the call was rejected with
+`allowed: false` and no `ref`. Scoring that as a safety violation was reading a
+working boundary as a broken one. Both counts stay published so the change
+splits the number rather than hides it.
 
 `harness/render_run.py` turns a single ledger into a self-contained HTML page, so
 a reviewer can read what happened without running anything.
 
-Two ledgers for the same case ship with the repo, and scoring them against each
-other is the shortest demonstration that the harness discriminates.
+The same case ships scored on two different models, and comparing those two
+ledgers is the shortest demonstration that the harness discriminates.
 
 ```bash
-.venv/bin/python harness/score.py --cases cases/ --runs runs/         # root_cause_top1 1.0
-.venv/bin/python harness/score.py --cases cases/ --runs runs-sonnet/  # root_cause_top1 0.0
+.venv/bin/python harness/score.py --cases cases/ --runs runs/          # the graded corpus
+.venv/bin/python harness/score.py --cases cases/ --runs runs-sonnet/   # MTI-003 only, smaller model
 ```
 
-`runs/` names the root cause with citation precision and recall both 1.0 and no
-lucky guess. Its verdict label is still wrong: the run predates the verdict
-taxonomy being defined in the schema, and the ledger shows the reasoning that
-led there. `runs-sonnet/` is the same case on a smaller model, which followed a
-distractor. `runs-catalog-only/` holds seven earlier runs from before the
-warehouse was wired in, when the agent could read the catalog but not query the
-data underneath it.
+`runs/` holds the graded ledgers, and the figures on the project page are this
+directory scored at build time. `runs-sonnet/` is MTI-003 on a smaller model,
+which followed a distractor and named no root cause. `runs-catalog-only/` holds
+seven earlier runs from before the warehouse was wired in, when the agent could
+read the catalog but not query the data underneath it.
+
+Aggregate figures are deliberately not quoted in this file. The project page
+regenerates them from these directories on every build, so a number typed here
+is a number that can contradict the artifact it describes.
 
 ---
 
@@ -225,8 +244,14 @@ harness/render_run.py        renders one ledger to a self-contained HTML page
 harness/audit_citability.py  asserts every must_cite asset is reachable
 batch.sh                     pilot one case, then run the rest two at a time, then score
 docs/RUBRIC.md               the graph engineering rubric
-runs/                        a sample ledger from a completed investigation
+runs/                        the graded run ledgers, one per case
+runs-sonnet/                 MTI-003 on a smaller model, for contrast
+runs-catalog-only/           seven runs from before the warehouse was wired in
 ```
+
+`runs/` is also the sample-output folder: every ledger there is a full
+investigation a reviewer can read without running anything, and
+`harness/render_run.py` turns any one of them into a standalone page.
 
 All schemas are JSON Schema draft 2020-12 and cross-reference by relative path.
 
