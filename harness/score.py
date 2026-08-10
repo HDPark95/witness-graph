@@ -291,6 +291,32 @@ def main() -> int:
         summary.get("root_cause_top1", 0.0)
         - summary.get("baseline_root_cause_accuracy", 0.0), 3)
 
+    # The corpus-wide baseline above guards one direction: a partial run cannot
+    # lower the bar it is measured against. It does not guard the other. When
+    # the cases that happen to have run are all one class, and that class is the
+    # majority class, the corpus baseline is EASIER than the sample and the lift
+    # reads high for a reason that has nothing to do with the agent.
+    #
+    # That happened here. Three of eleven cases had ledgers and all three were
+    # instrument_failure. The reported verdict lift was +0.455. Against a
+    # baseline drawn from those same three it was +0.000, because the lazy agent
+    # answers all three correctly too.
+    #
+    # So publish both. An accuracy and a baseline taken from different samples
+    # do not form a comparison, and a reader checking whether we stacked the
+    # deck has to be able to see the like-for-like number. When every case has
+    # run the two samples coincide and the pairs agree.
+    scored_cases = [c for c in all_cases if c["case_id"] not in set(missing)]
+    if scored_cases:
+        b = majority_class_baseline(scored_cases)
+        summary["baseline_accuracy_scored"] = b["baseline_accuracy"]
+        summary["baseline_root_cause_accuracy_scored"] = b["baseline_root_cause_accuracy"]
+        summary["lift_over_baseline_scored"] = round(
+            summary.get("verdict_top1", 0.0) - b["baseline_accuracy"], 3)
+        summary["root_cause_lift_over_baseline_scored"] = round(
+            summary.get("root_cause_top1", 0.0) - b["baseline_root_cause_accuracy"], 3)
+        summary["scored_verdict_distribution"] = b["verdict_distribution"]
+
     report = {"summary": summary, "per_case": rows}
     text = json.dumps(report, indent=2, ensure_ascii=False)
     if args.out:
