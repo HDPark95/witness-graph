@@ -91,29 +91,54 @@ Ten cases have committed ledgers in `runs/`. Everything below is what
     verdict lift, against the lazy agent on these same cases      -0.100
     root cause lift, against the lazy agent on these same cases   +0.500
 
-**The verdict lift is negative, and we are publishing it rather than the
-flattering version we could have published.** An agent that always answers
-`instrument_failure` scores 0.600 on these ten cases. Ours scores 0.500. On the
-coarse question of which kind of failure this is, our graph is worse than a
-constant.
+**The two accuracies point in opposite directions, and that is the finding.**
+Against these same ten cases an agent that always guesses the most common label
+scores 0.600 on the verdict and 0.100 on the root cause. Naming the specific
+fault is where the graph earns its keep: six of ten against one in ten, on a
+corpus whose eleven root causes are all distinct. Picking the four-way label is
+where it does not. On the verdict it is slightly worse than answering
+"instrument failure" every time and going home.
 
-The reason is in the ledgers rather than inferred from them. Our agent answered
-`instrument_failure` on 8 of 10 cases where the answer key says 6, and it failed
-every control: MTI-008 and MTI-011, where customers really did change, and
-MTI-009, where the metric definition widened underneath the number. Those
-controls exist because a benchmark made only of broken pipelines measures bias
-instead of judgement. They measured ours, and we did not pass.
+We publish the negative lift rather than the flattering one, because a baseline
+you publish and then quote selectively is not a baseline.
 
-Root cause is the headline number and it survives. Naming the specific fault
-scores 0.600 against 0.100 for the same lazy agent, a lift of +0.500, because
-the eleven root causes are all distinct and no amount of label-guessing reaches
-one. MTI-007 is the clearest single case: wrong verdict, right root cause, which
-is not a combination a label-guesser produces.
+The verdict result is not one bad case, it is a bias, and the ledgers name it.
+Our agent answered `instrument_failure` on 8 of 10 cases where the key says 6,
+and it failed every control it was given: MTI-008 and MTI-011, where customers
+really did change, and MTI-009, where the metric definition widened underneath
+the number. Those controls exist because a benchmark made only of broken
+pipelines measures bias instead of judgement. They measured ours, and we did not
+pass. Four of the eleven cases were built to catch exactly this failure mode,
+three of those four have run, and the agent lost all three.
 
-Two more numbers are ours to own. The lucky guess rate is 0.400, meaning four
-runs landed on the right answer without the citation recall a correct
-investigation implies. The confidently wrong rate is 0.200. Both are computed
-from the ledger, both are on the project page, and neither is smoothed away.
+MTI-007 is the sharpest single case, verified from its ledger:
+
+    agent   verdict=instrument_failure    cause=collation_join_break
+    key     verdict=upstream_data_defect  cause=collation_join_break
+
+It found the fault and misfiled the category. That combination is not one a
+label-guesser produces, and it separates the two skills cleanly: the
+investigation worked, the taxonomy step is a different problem, and the harness
+does not currently help with it.
+
+Four of the ten are flagged as lucky guesses: the right answer without touching
+the evidence a correct investigation cannot avoid. That is 40 percent of the
+wins arriving for the wrong reason, and it sits in the output above rather than
+folded into the accuracy. Two are confidently wrong, meaning they named a cause
+the case explicitly rules out, which the scorer treats as worse than abstaining.
+
+One tool call was refused and it is worth reading precisely. `adjudicate`
+reached for `warehouse.query`, a tool its node never declares; the runtime
+rejected it before dispatch and wrote the refusal into the ledger with no
+result and no reference. That is the boundary firing, so it is counted as an
+attempt rather than a violation, and `safety_clean` reads the executed count,
+which is zero. Both numbers stay published. A run that cannot violate its
+permissions is a claim. A run observed being stopped from violating them is
+evidence.
+
+MTI-010 has no ledger and is excluded rather than counted as a miss. Its run
+ended when the API stayed unreachable for fifteen minutes, and `score.py` names
+it in `cases_without_runs` rather than quietly scoring nine.
 
 Earlier in the build only three ledgers were committed. All three carried the
 same label, all three were correct, and against the full-corpus baseline they
