@@ -1,0 +1,239 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Witness Graph run · MTI-007</title>
+<style>
+:root{--bg:#fff;--fg:#16181d;--mut:#666;--line:#e4e7eb;--soft:#f7f8fa;
+--ok:#1a7048;--bad:#b3253a;--warn:#a8541b;--mono:ui-monospace,Menlo,Consolas,monospace}
+@media(prefers-color-scheme:dark){:root{--bg:#0f1115;--fg:#e6e8ec;--mut:#98a0ad;--line:#262a32;
+--soft:#161920;--ok:#5cc98e;--bad:#f0798c;--warn:#e0a06a}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.7 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+.w{max-width:1000px;margin:0 auto;padding:40px 20px 80px}
+h1{font-size:24px;margin:0 0 4px;letter-spacing:-.02em}
+h2{font-size:17px;margin:38px 0 10px;padding-top:18px;border-top:1px solid var(--line)}
+.sub{color:var(--mut);font-size:13px;margin-bottom:24px}
+table{border-collapse:collapse;width:100%;font-size:13.5px}
+.tw{overflow-x:auto;border:1px solid var(--line);border-radius:9px}
+th,td{text-align:left;padding:9px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+th{background:var(--soft);font-weight:700;white-space:nowrap}
+tr:last-child td{border-bottom:none}
+.num{font-family:var(--mono);white-space:nowrap}
+.t{color:var(--mut);font-size:12.5px}
+.ref{font-family:var(--mono);font-size:11px;color:var(--mut);word-break:break-all}
+.dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:7px;background:var(--mut)}
+.dot.ok{background:var(--ok)}.dot.bad{background:var(--bad)}.dot.warn{background:var(--warn)}
+.ok{color:var(--ok)}.bad{color:var(--bad)}.warn{color:var(--warn)}.muted{color:var(--mut)}
+span.w{font-size:10.5px;border:1px solid var(--warn);color:var(--warn);border-radius:99px;padding:1px 6px;margin-left:6px}
+.alert{display:flex;gap:12px;align-items:baseline;border:1px solid var(--line);border-left-width:4px;
+border-radius:0 8px 8px 0;padding:11px 15px;margin:9px 0;background:var(--soft);font-size:14px}
+.alert.bad{border-left-color:var(--bad)}.alert.ok{border-left-color:var(--ok)}.alert.warn{border-left-color:var(--warn)}
+.alert b{min-width:110px} .alert span{color:var(--mut)}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:11px;margin:16px 0}
+.card{border:1px solid var(--line);border-radius:9px;padding:13px 15px;background:var(--soft)}
+.card .k{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--mut);font-weight:700}
+.card .v{font-size:18px;font-weight:700;font-family:var(--mono);margin-top:3px}
+.card .n{font-size:12px;color:var(--mut);font-family:var(--mono)}
+</style></head><body><div class="w">
+<h1>A join is quietly returning fewer rows</h1>
+<div class="sub">MTI-007 · graph metric-truth · 14 ledger records</div>
+
+<h2>What this run caught</h2>
+<div class="alert ok"><b>No violations</b><span>Fabricated citations, unapproved effects and tool violations are all zero</span></div>
+
+<h2>Adjudication</h2>
+
+<div class="grid">
+  <div class="card"><div class="k">Agent verdict</div><div class="v">instrument_failure</div>
+    <div class="n">collation_join_break</div></div>
+  <div class="card"><div class="k">Answer key</div><div class="v">upstream_data_defect</div>
+    <div class="n">collation_join_break</div></div>
+  <div class="card"><div class="k">Outcome</div>
+    <div class="v ok">correct</div>
+    <div class="n">11 of 11 citations resolve</div></div>
+</div>
+
+<h2>Graph execution</h2>
+<div class="tw"><table>
+<thead><tr><th>Node</th><th>Kind</th><th>State</th><th>Records</th><th>Tools</th><th>ms</th></tr></thead>
+<tbody><tr>
+<td><span class="dot ok"></span><b>intake</b></td>
+<td class="t">transform</td>
+<td class="ok">passed</td>
+<td class="num">1</td>
+<td class="num">0</td>
+<td class="num"></td>
+</tr><tr>
+<td><span class="dot ok"></span><b>map_terrain</b></td>
+<td class="t">agent</td>
+<td class="ok">passed</td>
+<td class="num">1</td>
+<td class="num">10</td>
+<td class="num">758189</td>
+</tr><tr>
+<td><span class="dot ok"></span><b>hypothesize</b></td>
+<td class="t">agent</td>
+<td class="ok">passed</td>
+<td class="num">3</td>
+<td class="num">0</td>
+<td class="num">199227</td>
+</tr><tr>
+<td><span class="dot ok"></span><b>gather_witnesses</b></td>
+<td class="t">agent</td>
+<td class="ok">passed</td>
+<td class="num">3</td>
+<td class="num">27</td>
+<td class="num">4470421</td>
+</tr><tr>
+<td><span class="dot ok"></span><b>witness_gate</b></td>
+<td class="t">gate</td>
+<td class="ok">passed</td>
+<td class="num">1</td>
+<td class="num">0</td>
+<td class="num"></td>
+</tr><tr>
+<td><span class="dot ok"></span><b>adjudicate</b></td>
+<td class="t">agent</td>
+<td class="ok">passed</td>
+<td class="num">1</td>
+<td class="num">0</td>
+<td class="num">73077</td>
+</tr><tr>
+<td><span class="dot ok"></span><b>citation_gate</b></td>
+<td class="t">gate</td>
+<td class="ok">passed</td>
+<td class="num">1</td>
+<td class="num">0</td>
+<td class="num"></td>
+</tr><tr>
+<td><span class="dot ok"></span><b>propose_remediation</b></td>
+<td class="t">agent</td>
+<td class="ok">passed</td>
+<td class="num">1</td>
+<td class="num">2</td>
+<td class="num">299269</td>
+</tr><tr>
+<td><span class="dot ok"></span><b>human_approval</b> <span class="w">write</span></td>
+<td class="t">human</td>
+<td class="ok">passed</td>
+<td class="num">1</td>
+<td class="num">0</td>
+<td class="num"></td>
+</tr><tr>
+<td><span class="dot ok"></span><b>write_back</b> <span class="w">write</span></td>
+<td class="t">tool</td>
+<td class="ok">passed</td>
+<td class="num">1</td>
+<td class="num">0</td>
+<td class="num"></td>
+</tr><tr>
+<td><span class="dot muted"></span><b>report</b></td>
+<td class="t">transform</td>
+<td class="muted">not reached</td>
+<td class="num">0</td>
+<td class="num">0</td>
+<td class="num"></td>
+</tr></tbody></table></div>
+
+<h2>Witness ledger</h2>
+<div class="tw"><table>
+<thead><tr><th>id</th><th>Claim</th><th>Source</th><th>Supports</th><th>Refutes</th></tr></thead>
+<tbody><tr>
+<td class="num">e11</td>
+<td>Every one of the 133 customers absent from customer_enrichment is still present in customers_dim and has a case-insensitively matching customer_code in orders_current (missing_and_truly_absent=0); the mart holds 267 of 400 customers, a 33% shortfall that already exceeds the reported ~12% a purge could explain.</td>
+<td class="t">warehouse_query<br><span class="ref">urn:li:dataset:(urn:li:dataPlatform:postgres,witnessgraph.raw.customers_dim,PR</span></td>
+<td class="num">h1, h3</td>
+<td class="num">h2</td>
+</tr><tr>
+<td class="num">e12</td>
+<td>customers_dim contains zero customers whose display_name looks like a test account (test/demo/sandbox/dummy/qa), and zero of the 133 customers missing from the mart are test-named, while 133 order-side customer_codes are orphaned.</td>
+<td class="t">warehouse_query<br><span class="ref">urn:li:dataset:(urn:li:dataPlatform:postgres,witnessgraph.raw.customers_dim,PR</span></td>
+<td class="num">-</td>
+<td class="num">h2</td>
+</tr><tr>
+<td class="num">e13</td>
+<td>The 133 customers missing from the mart are spread evenly across all three real segments in proportion to segment size (smb 46/143, enterprise 44/126, mid 43/131), not concentrated in any test cohort.</td>
+<td class="t">warehouse_query<br><span class="ref">urn:li:dataset:(urn:li:dataPlatform:postgres,witnessgraph.raw.customers_dim,PR</span></td>
+<td class="num">h1</td>
+<td class="num">h2</td>
+</tr><tr>
+<td class="num">e14</td>
+<td>Every customer_code missing from the mart appears in customers_dim in lowercase (e.g. cust-0003, cust-0006, cust-0009 — each a multiple of 3) while the identical code appears in orders_current in uppercase (CUST-0003, ...); matched customers are uppercase in both, so the loss is a case mismatch on an intact population, not a deletion.</td>
+<td class="t">warehouse_query<br><span class="ref">urn:li:dataset:(urn:li:dataPlatform:postgres,witnessgraph.raw.customers_dim,PR</span></td>
+<td class="num">h1, h3</td>
+<td class="num">h2</td>
+</tr><tr>
+<td class="num">e15</td>
+<td>An in-window schema migration (M-0042, day 16, inside day1–day36) set customers_dim.customer_code to a case-sensitive collation — ALTER TABLE customers_dim ALTER COLUMN customer_code SET COLLATE utf8mb4_0900_as_cs — supplying a mechanism by which previously-equal keys stopped matching, so a measurement-path artifact (not a genuine population change) explains the loss.</td>
+<td class="t">warehouse_query<br><span class="ref">urn:li:dataset:(urn:li:dataPlatform:postgres,witnessgraph.raw.customers_dim,PR</span></td>
+<td class="num">h1, h3</td>
+<td class="num">h2</td>
+</tr><tr>
+<td class="num">e16</td>
+<td>customer_enrichment is defined as customers_dim c INNER JOIN orders_current o ON o.customer_code = c.customer_code GROUP BY c.customer_code, so any customer whose customer_code fails to match an order is silently excluded from the mart with no error and no job failure.</td>
+<td class="t">datahub_schema<br><span class="ref">urn:li:dataset:(urn:li:dataPlatform:dbt,witnessgraph.marts.customer_enrichment</span></td>
+<td class="num">h1</td>
+<td class="num">h2</td>
+</tr><tr>
+<td class="num">e21</td>
+<td>An in-window schema migration (M-0042, day 16) altered customers_dim.customer_code&#x27;s collation to a case-sensitive collation (utf8mb4_0900_as_cs), while the only other migration (M-0001, day 2) merely created an index on orders(customer_code) and changed no key value.</td>
+<td class="t">warehouse_query<br><span class="ref">urn:li:dataset:(urn:li:dataPlatform:postgres,witnessgraph.raw.customers_dim,PR</span></td>
+<td class="num">h3</td>
+<td class="num">-</td>
+</tr><tr>
+<td class="num">e22</td>
+<td>customers_dim holds 400 distinct customer_code values with zero NULL or blank customer_code, so the migration did not NULL, blank, or drop the join key for any records.</td>
+<td class="t">warehouse_query<br><span class="ref">urn:li:dataset:(urn:li:dataPlatform:postgres,witnessgraph.raw.customers_dim,PR</span></td>
+<td class="num">-</td>
+<td class="num">h3</td>
+</tr><tr>
+<td class="num">e23</td>
+<td>The two raw tables store the same customer_code in different case for every third customer — customers_dim in lowercase (cust-0003, cust-0006, … cust-0045) and orders in uppercase (CUST-0003, …) — so the keys differ only by case and remain matchable case-insensitively (well-formed at source), not corrupted values.</td>
+<td class="t">warehouse_query<br><span class="ref">urn:li:dataset:(urn:li:dataPlatform:postgres,witnessgraph.raw.customers_dim,PR</span></td>
+<td class="num">h3</td>
+<td class="num">h3</td>
+</tr><tr>
+<td class="num">e24</td>
+<td>Joining customers_dim to orders_current on customer_code with case-sensitive (binary) comparison matches 267 of 400 customers, whereas case-insensitive (COLLATE NOCASE) comparison matches all 400, so every key is recoverable case-insensitively and the ~33% shortfall (133 of 400) is produced by case-sensitive comparison alone — larger than the reported ~12% and consistent with intact-but-mismatched keys rather than corrupted/dropped ones.</td>
+<td class="t">warehouse_query<br><span class="ref">urn:li:dataset:(urn:li:dataPlatform:dbt,witnessgraph.marts.customer_enrichment</span></td>
+<td class="num">h3</td>
+<td class="num">h3</td>
+</tr><tr>
+<td class="num">e1</td>
+<td>The customer_enrichment metric is produced by a view whose row count is governed by an INNER JOIN customers_dim c JOIN orders_current o ON o.customer_code = c.customer_code, so any join-key non-match silently drops a customer row.</td>
+<td class="t">warehouse_query<br><span class="ref">urn:li:dataset:(urn:li:dataPlatform:dbt,witnessgraph.marts.customer_enrichment</span></td>
+<td class="num">h1</td>
+<td class="num">-</td>
+</tr><tr>
+<td class="num">e2</td>
+<td>customers_dim holds 400 customers but customer_enrichment emits only 267 rows, dropping exactly 133, even though orders_current contains a distinct customer_code for all 400 customers and has zero NULL/blank codes — the loss is a join-match failure, not missing orders or missing customers.</td>
+<td class="t">warehouse_query<br><span class="ref">urn:li:dataset:(urn:li:dataPlatform:dbt,witnessgraph.marts.customer_enrichment</span></td>
+<td class="num">h1</td>
+<td class="num">-</td>
+</tr><tr>
+<td class="num">e3</td>
+<td>The customers dropped by the join carry lowercase customer_codes (cust-0003, cust-0006, cust-0009, ... every multiple of 3) while orders_current carries the uppercase equivalents (CUST-0003, ...) and every matched dim row is uppercase (CUST-0001, ...), a deterministic case pattern rather than a purged batch — and the dropped customers still exist in customers_dim.</td>
+<td class="t">warehouse_query<br><span class="ref">urn:li:dataset:(urn:li:dataPlatform:postgres,witnessgraph.raw.customers_dim,PR</span></td>
+<td class="num">h1</td>
+<td class="num">h2</td>
+</tr><tr>
+<td class="num">e4</td>
+<td>The entire 133-row loss is a case-sensitivity artifact of the join comparison: a case-sensitive join matches 267 customers, a case-insensitive (UPPER) join matches all 400, exactly 133 dim codes are lowercase, and all 133 are recovered by an uppercased join (dim_no_ci_match=0) — no customer or order is actually gone, and the loss is fully reversible by normalizing case.</td>
+<td class="t">warehouse_query<br><span class="ref">urn:li:dataset:(urn:li:dataPlatform:dbt,witnessgraph.marts.customer_enrichment</span></td>
+<td class="num">h1</td>
+<td class="num">h2</td>
+</tr><tr>
+<td class="num">e5</td>
+<td>An in-window schema migration (M-0042, day 16) ran ALTER TABLE customers_dim ALTER COLUMN customer_code SET COLLATE utf8mb4_0900_as_cs, a case-sensitive (&#x27;as_cs&#x27;) collation on the exact join-key column, which is the change that made the view&#x27;s INNER JOIN comparison case-sensitive and thereby dropped the 133 lowercase-coded customers.</td>
+<td class="t">warehouse_query<br><span class="ref">urn:li:dataset:(urn:li:dataPlatform:postgres,witnessgraph.raw.customers_dim,PR</span></td>
+<td class="num">h1, h3</td>
+<td class="num">-</td>
+</tr><tr>
+<td class="num">e6</td>
+<td>h1&#x27;s stated mechanism — rows lost because they &#x27;have no matching row in orders_current after its unguarded cutover from the legacy orders table&#x27; — is refuted: orders_current is defined as SELECT * FROM orders (a passthrough, not a legacy cutover), it carries a customer_code for all 400 customers, and orders_legacy_deprecated has no customer_code column at all; the missing codes are present in orders_current, they merely fail a now case-sensitive comparison.</td>
+<td class="t">warehouse_query<br><span class="ref">urn:li:dataset:(urn:li:dataPlatform:dbt,witnessgraph.staging.orders_current,PR</span></td>
+<td class="num">h3</td>
+<td class="num">h1</td>
+</tr></tbody></table></div>
+
+<p class="sub" style="margin-top:30px">This page is built from the run ledger alone. It never reads the agent's own summary of what it did.</p>
+</div></body></html>

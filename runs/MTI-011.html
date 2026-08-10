@@ -1,0 +1,245 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Witness Graph run · MTI-011</title>
+<style>
+:root{--bg:#fff;--fg:#16181d;--mut:#666;--line:#e4e7eb;--soft:#f7f8fa;
+--ok:#1a7048;--bad:#b3253a;--warn:#a8541b;--mono:ui-monospace,Menlo,Consolas,monospace}
+@media(prefers-color-scheme:dark){:root{--bg:#0f1115;--fg:#e6e8ec;--mut:#98a0ad;--line:#262a32;
+--soft:#161920;--ok:#5cc98e;--bad:#f0798c;--warn:#e0a06a}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.7 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+.w{max-width:1000px;margin:0 auto;padding:40px 20px 80px}
+h1{font-size:24px;margin:0 0 4px;letter-spacing:-.02em}
+h2{font-size:17px;margin:38px 0 10px;padding-top:18px;border-top:1px solid var(--line)}
+.sub{color:var(--mut);font-size:13px;margin-bottom:24px}
+table{border-collapse:collapse;width:100%;font-size:13.5px}
+.tw{overflow-x:auto;border:1px solid var(--line);border-radius:9px}
+th,td{text-align:left;padding:9px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+th{background:var(--soft);font-weight:700;white-space:nowrap}
+tr:last-child td{border-bottom:none}
+.num{font-family:var(--mono);white-space:nowrap}
+.t{color:var(--mut);font-size:12.5px}
+.ref{font-family:var(--mono);font-size:11px;color:var(--mut);word-break:break-all}
+.dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:7px;background:var(--mut)}
+.dot.ok{background:var(--ok)}.dot.bad{background:var(--bad)}.dot.warn{background:var(--warn)}
+.ok{color:var(--ok)}.bad{color:var(--bad)}.warn{color:var(--warn)}.muted{color:var(--mut)}
+span.w{font-size:10.5px;border:1px solid var(--warn);color:var(--warn);border-radius:99px;padding:1px 6px;margin-left:6px}
+.alert{display:flex;gap:12px;align-items:baseline;border:1px solid var(--line);border-left-width:4px;
+border-radius:0 8px 8px 0;padding:11px 15px;margin:9px 0;background:var(--soft);font-size:14px}
+.alert.bad{border-left-color:var(--bad)}.alert.ok{border-left-color:var(--ok)}.alert.warn{border-left-color:var(--warn)}
+.alert b{min-width:110px} .alert span{color:var(--mut)}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:11px;margin:16px 0}
+.card{border:1px solid var(--line);border-radius:9px;padding:13px 15px;background:var(--soft)}
+.card .k{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--mut);font-weight:700}
+.card .v{font-size:18px;font-weight:700;font-family:var(--mono);margin-top:3px}
+.card .n{font-size:12px;color:var(--mut);font-family:var(--mono)}
+</style></head><body><div class="w">
+<h1>Checkout completion dropped for one browser</h1>
+<div class="sub">MTI-011 · graph metric-truth · 14 ledger records</div>
+
+<h2>What this run caught</h2>
+<div class="alert ok"><b>No violations</b><span>Fabricated citations, unapproved effects and tool violations are all zero</span></div>
+
+<h2>Adjudication</h2>
+
+<div class="grid">
+  <div class="card"><div class="k">Agent verdict</div><div class="v">instrument_failure</div>
+    <div class="n">user_agent_tracking_break</div></div>
+  <div class="card"><div class="k">Answer key</div><div class="v">customer_behavior</div>
+    <div class="n">browser_specific_product_defect</div></div>
+  <div class="card"><div class="k">Outcome</div>
+    <div class="v bad">wrong</div>
+    <div class="n">12 of 12 citations resolve</div></div>
+</div>
+
+<h2>Graph execution</h2>
+<div class="tw"><table>
+<thead><tr><th>Node</th><th>Kind</th><th>State</th><th>Records</th><th>Tools</th><th>ms</th></tr></thead>
+<tbody><tr>
+<td><span class="dot ok"></span><b>intake</b></td>
+<td class="t">transform</td>
+<td class="ok">passed</td>
+<td class="num">1</td>
+<td class="num">0</td>
+<td class="num"></td>
+</tr><tr>
+<td><span class="dot ok"></span><b>map_terrain</b></td>
+<td class="t">agent</td>
+<td class="ok">passed</td>
+<td class="num">1</td>
+<td class="num">10</td>
+<td class="num">490307</td>
+</tr><tr>
+<td><span class="dot ok"></span><b>hypothesize</b></td>
+<td class="t">agent</td>
+<td class="ok">passed</td>
+<td class="num">3</td>
+<td class="num">0</td>
+<td class="num">194540</td>
+</tr><tr>
+<td><span class="dot ok"></span><b>gather_witnesses</b></td>
+<td class="t">agent</td>
+<td class="ok">passed</td>
+<td class="num">3</td>
+<td class="num">29</td>
+<td class="num">5111976</td>
+</tr><tr>
+<td><span class="dot ok"></span><b>witness_gate</b></td>
+<td class="t">gate</td>
+<td class="ok">passed</td>
+<td class="num">1</td>
+<td class="num">0</td>
+<td class="num"></td>
+</tr><tr>
+<td><span class="dot ok"></span><b>adjudicate</b></td>
+<td class="t">agent</td>
+<td class="ok">passed</td>
+<td class="num">1</td>
+<td class="num">0</td>
+<td class="num">265843</td>
+</tr><tr>
+<td><span class="dot ok"></span><b>citation_gate</b></td>
+<td class="t">gate</td>
+<td class="ok">passed</td>
+<td class="num">1</td>
+<td class="num">0</td>
+<td class="num"></td>
+</tr><tr>
+<td><span class="dot ok"></span><b>propose_remediation</b></td>
+<td class="t">agent</td>
+<td class="ok">passed</td>
+<td class="num">1</td>
+<td class="num">2</td>
+<td class="num">311820</td>
+</tr><tr>
+<td><span class="dot ok"></span><b>human_approval</b> <span class="w">write</span></td>
+<td class="t">human</td>
+<td class="ok">passed</td>
+<td class="num">1</td>
+<td class="num">0</td>
+<td class="num"></td>
+</tr><tr>
+<td><span class="dot ok"></span><b>write_back</b> <span class="w">write</span></td>
+<td class="t">tool</td>
+<td class="ok">passed</td>
+<td class="num">1</td>
+<td class="num">0</td>
+<td class="num"></td>
+</tr><tr>
+<td><span class="dot muted"></span><b>report</b></td>
+<td class="t">transform</td>
+<td class="muted">not reached</td>
+<td class="num">0</td>
+<td class="num">0</td>
+<td class="num"></td>
+</tr></tbody></table></div>
+
+<h2>Witness ledger</h2>
+<div class="tw"><table>
+<thead><tr><th>id</th><th>Claim</th><th>Source</th><th>Supports</th><th>Refutes</th></tr></thead>
+<tbody><tr>
+<td class="num">e1</td>
+<td>The marts.checkout_completions metric is a SQL view defined as `SELECT day, browser_version, COUNT(*) AS completions FROM checkout_events WHERE step=&#x27;completed&#x27; GROUP BY day, browser_version`, containing no user-agent parsing, browser_version normalization, or bucket-relabeling logic.</td>
+<td class="t">warehouse_query<br><span class="ref">urn:li:dataset:(urn:li:dataPlatform:dbt,witnessgraph.marts.checkout_completion</span></td>
+<td class="num">-</td>
+<td class="num">h1</td>
+</tr><tr>
+<td class="num">e2</td>
+<td>raw.checkout_events stores browser_version directly as a NOT NULL TEXT column and has no user_agent (raw UA) column; its full column set is event_id, day, step, browser_version, customer_code.</td>
+<td class="t">warehouse_query<br><span class="ref">urn:li:dataset:(urn:li:dataPlatform:postgres,witnessgraph.raw.checkout_events,</span></td>
+<td class="num">-</td>
+<td class="num">h1</td>
+</tr><tr>
+<td class="num">e3</td>
+<td>Across day 1–36 exactly four browser_version values appear among completed checkouts — chrome-127, chrome-126, firefox-128, safari-17 — each present from first_day=1 through last_day=36, with no new, unknown, or null browser_version bucket appearing at any point.</td>
+<td class="t">warehouse_query<br><span class="ref">urn:li:dataset:(urn:li:dataPlatform:postgres,witnessgraph.raw.checkout_events,</span></td>
+<td class="num">-</td>
+<td class="num">h1</td>
+</tr><tr>
+<td class="num">e4</td>
+<td>In every 6-day period from day 1 to 36 there are exactly 4 distinct browser_version values, and total completed checkouts per period are flat (349, 361, 398, 364, 386, 373) with no period showing a shortfall.</td>
+<td class="t">warehouse_query<br><span class="ref">urn:li:dataset:(urn:li:dataPlatform:postgres,witnessgraph.raw.checkout_events,</span></td>
+<td class="num">-</td>
+<td class="num">h1</td>
+</tr><tr>
+<td class="num">e5</td>
+<td>Per-browser completions per 6-day period are approximately flat for all four browsers over day 1–36, so no browser_version bucket falls ~40% from its own baseline.</td>
+<td class="t">warehouse_query<br><span class="ref">urn:li:dataset:(urn:li:dataPlatform:dbt,witnessgraph.marts.checkout_completion</span></td>
+<td class="num">-</td>
+<td class="num">h1</td>
+</tr><tr>
+<td class="num">e6</td>
+<td>For the browser_version values fully returned (chrome-126, chrome-127, firefox-128), started/payment/completed event counts per 6-day period all remain stable across day 1–36, with no funnel step collapsing for any browser.</td>
+<td class="t">warehouse_query<br><span class="ref">urn:li:dataset:(urn:li:dataPlatform:postgres,witnessgraph.raw.checkout_events,</span></td>
+<td class="num">-</td>
+<td class="num">h1</td>
+</tr><tr>
+<td class="num">e11</td>
+<td>The marts.checkout_completions metric is defined as COUNT(*) of raw.checkout_events rows filtered to step=&#x27;completed&#x27;, grouped by day and browser_version — a count of completion-tagged events, not of downstream-confirmed orders.</td>
+<td class="t">config<br><span class="ref">urn:li:dataset:(urn:li:dataPlatform:dbt,witnessgraph.marts.checkout_completion</span></td>
+<td class="num">-</td>
+<td class="num">-</td>
+</tr><tr>
+<td class="num">e12</td>
+<td>In marts.checkout_completions, day 19-36 vs day 1-18 summed completions are safari-17 177 vs 214 (-17%), chrome-126 303 vs 328, chrome-127 339 vs 295, firefox-128 304 vs 271; the all-bucket total is 1123 vs 1108, i.e. flat, so there is no real aggregate ~40% loss even in the recorded metric.</td>
+<td class="t">warehouse_query<br><span class="ref">urn:li:dataset:(urn:li:dataPlatform:dbt,witnessgraph.marts.checkout_completion</span></td>
+<td class="num">h1</td>
+<td class="num">h2</td>
+</tr><tr>
+<td class="num">e13</td>
+<td>Confirmed orders in raw.orders — keyed by customer_code and carrying no browser_version column, so immune to any user-agent tagging break — are flat over the window for the cohort of customers who ever checked out on safari-17 (1128 in day 19-36 vs 1147 in day 1-18) and in total (1271 vs 1297).</td>
+<td class="t">warehouse_query<br><span class="ref">urn:li:dataset:(urn:li:dataPlatform:postgres,witnessgraph.raw.orders,PROD)</span></td>
+<td class="num">-</td>
+<td class="num">h2</td>
+</tr><tr>
+<td class="num">e14</td>
+<td>Attributing raw.orders to browser via web_sessions, day 19-36 vs day 1-18 order counts are flat for every browser including safari-17 (1263 vs 1291), giving no per-browser real drop.</td>
+<td class="t">warehouse_query<br><span class="ref">urn:li:dataset:(urn:li:dataPlatform:postgres,witnessgraph.raw.orders,PROD)</span></td>
+<td class="num">-</td>
+<td class="num">h2</td>
+</tr><tr>
+<td class="num">e15</td>
+<td>For safari-17 in raw.checkout_events, weekly (6-day) started and payment counts hold roughly steady while the payment-&gt;completed rate falls only modestly from ~55% (weeks 1-3) to ~49% (weeks 4-6), showing no sharp onset-coincident late-step funnel collapse of the magnitude h2 predicts.</td>
+<td class="t">warehouse_query<br><span class="ref">urn:li:dataset:(urn:li:dataPlatform:postgres,witnessgraph.raw.checkout_events,</span></td>
+<td class="num">-</td>
+<td class="num">h2</td>
+</tr><tr>
+<td class="num">e21</td>
+<td>marts.checkout_completions is a plain pass-through view defined as SELECT day, browser_version, COUNT(*) AS completions FROM checkout_events WHERE step=&#x27;completed&#x27; GROUP BY day, browser_version, so its completion counts equal raw checkout_events row counts with no filtering or bucketing in between.</td>
+<td class="t">datahub_schema<br><span class="ref">urn:li:dataset:(urn:li:dataPlatform:dbt,witnessgraph.marts.checkout_completion</span></td>
+<td class="num">-</td>
+<td class="num">-</td>
+</tr><tr>
+<td class="num">e22</td>
+<td>In raw.checkout_events, completed-step row counts for every browser_version are flat or rising across the incident window, and no browser falls ~40%.</td>
+<td class="t">warehouse_query<br><span class="ref">urn:li:dataset:(urn:li:dataPlatform:postgres,witnessgraph.raw.checkout_events,</span></td>
+<td class="num">-</td>
+<td class="num">h3</td>
+</tr><tr>
+<td class="num">e23</td>
+<td>The independent orders table is flat across the window and roughly agrees with flat raw completed checkouts, so raw.checkout_events is not deficient in completions relative to an independent source of truth.</td>
+<td class="t">warehouse_query<br><span class="ref">urn:li:dataset:(urn:li:dataPlatform:postgres,witnessgraph.raw.checkout_events,</span></td>
+<td class="num">-</td>
+<td class="num">h3</td>
+</tr><tr>
+<td class="num">e24</td>
+<td>ingest_job_runs records only status=&#x27;ok&#x27; runs for every logged job across all 36 days, with zero rejected/missing/dead-lettered runs.</td>
+<td class="t">run_log<br><span class="ref">urn:li:dataset:(urn:li:dataPlatform:postgres,witnessgraph.raw.checkout_events,</span></td>
+<td class="num">-</td>
+<td class="num">h3</td>
+</tr><tr>
+<td class="num">e25</td>
+<td>DataHub lineage UPSTREAM of raw.checkout_events returns zero upstream entities, so the producer/ingest job that writes the table is not catalogued and cannot be inspected via metadata.</td>
+<td class="t">datahub_lineage<br><span class="ref">urn:li:dataset:(urn:li:dataPlatform:postgres,witnessgraph.raw.checkout_events,</span></td>
+<td class="num">-</td>
+<td class="num">-</td>
+</tr><tr>
+<td class="num">e26</td>
+<td>All four browser_version values carry completed-step rows spanning the full window (first_day=1, last_day=36) with non-null, well-formed browser_version values; no new/unknown/truncated bucket appears.</td>
+<td class="t">warehouse_query<br><span class="ref">urn:li:dataset:(urn:li:dataPlatform:postgres,witnessgraph.raw.checkout_events,</span></td>
+<td class="num">-</td>
+<td class="num">h3</td>
+</tr></tbody></table></div>
+
+<p class="sub" style="margin-top:30px">This page is built from the run ledger alone. It never reads the agent's own summary of what it did.</p>
+</div></body></html>

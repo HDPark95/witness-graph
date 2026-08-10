@@ -1,0 +1,239 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Witness Graph run · MTI-004</title>
+<style>
+:root{--bg:#fff;--fg:#16181d;--mut:#666;--line:#e4e7eb;--soft:#f7f8fa;
+--ok:#1a7048;--bad:#b3253a;--warn:#a8541b;--mono:ui-monospace,Menlo,Consolas,monospace}
+@media(prefers-color-scheme:dark){:root{--bg:#0f1115;--fg:#e6e8ec;--mut:#98a0ad;--line:#262a32;
+--soft:#161920;--ok:#5cc98e;--bad:#f0798c;--warn:#e0a06a}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.7 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+.w{max-width:1000px;margin:0 auto;padding:40px 20px 80px}
+h1{font-size:24px;margin:0 0 4px;letter-spacing:-.02em}
+h2{font-size:17px;margin:38px 0 10px;padding-top:18px;border-top:1px solid var(--line)}
+.sub{color:var(--mut);font-size:13px;margin-bottom:24px}
+table{border-collapse:collapse;width:100%;font-size:13.5px}
+.tw{overflow-x:auto;border:1px solid var(--line);border-radius:9px}
+th,td{text-align:left;padding:9px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+th{background:var(--soft);font-weight:700;white-space:nowrap}
+tr:last-child td{border-bottom:none}
+.num{font-family:var(--mono);white-space:nowrap}
+.t{color:var(--mut);font-size:12.5px}
+.ref{font-family:var(--mono);font-size:11px;color:var(--mut);word-break:break-all}
+.dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:7px;background:var(--mut)}
+.dot.ok{background:var(--ok)}.dot.bad{background:var(--bad)}.dot.warn{background:var(--warn)}
+.ok{color:var(--ok)}.bad{color:var(--bad)}.warn{color:var(--warn)}.muted{color:var(--mut)}
+span.w{font-size:10.5px;border:1px solid var(--warn);color:var(--warn);border-radius:99px;padding:1px 6px;margin-left:6px}
+.alert{display:flex;gap:12px;align-items:baseline;border:1px solid var(--line);border-left-width:4px;
+border-radius:0 8px 8px 0;padding:11px 15px;margin:9px 0;background:var(--soft);font-size:14px}
+.alert.bad{border-left-color:var(--bad)}.alert.ok{border-left-color:var(--ok)}.alert.warn{border-left-color:var(--warn)}
+.alert b{min-width:110px} .alert span{color:var(--mut)}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:11px;margin:16px 0}
+.card{border:1px solid var(--line);border-radius:9px;padding:13px 15px;background:var(--soft)}
+.card .k{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--mut);font-weight:700}
+.card .v{font-size:18px;font-weight:700;font-family:var(--mono);margin-top:3px}
+.card .n{font-size:12px;color:var(--mut);font-family:var(--mono)}
+</style></head><body><div class="w">
+<h1>The freshness check never fires</h1>
+<div class="sub">MTI-004 · graph metric-truth · 14 ledger records</div>
+
+<h2>What this run caught</h2>
+<div class="alert ok"><b>No violations</b><span>Fabricated citations, unapproved effects and tool violations are all zero</span></div>
+
+<h2>Adjudication</h2>
+
+<div class="grid">
+  <div class="card"><div class="k">Agent verdict</div><div class="v">instrument_failure</div>
+    <div class="n">freshness_window_too_wide</div></div>
+  <div class="card"><div class="k">Answer key</div><div class="v">instrument_failure</div>
+    <div class="n">freshness_window_too_wide</div></div>
+  <div class="card"><div class="k">Outcome</div>
+    <div class="v ok">correct</div>
+    <div class="n">16 of 16 citations resolve</div></div>
+</div>
+
+<h2>Graph execution</h2>
+<div class="tw"><table>
+<thead><tr><th>Node</th><th>Kind</th><th>State</th><th>Records</th><th>Tools</th><th>ms</th></tr></thead>
+<tbody><tr>
+<td><span class="dot ok"></span><b>intake</b></td>
+<td class="t">transform</td>
+<td class="ok">passed</td>
+<td class="num">1</td>
+<td class="num">0</td>
+<td class="num"></td>
+</tr><tr>
+<td><span class="dot ok"></span><b>map_terrain</b></td>
+<td class="t">agent</td>
+<td class="ok">passed</td>
+<td class="num">1</td>
+<td class="num">13</td>
+<td class="num">1316348</td>
+</tr><tr>
+<td><span class="dot ok"></span><b>hypothesize</b></td>
+<td class="t">agent</td>
+<td class="ok">passed</td>
+<td class="num">3</td>
+<td class="num">0</td>
+<td class="num">255219</td>
+</tr><tr>
+<td><span class="dot ok"></span><b>gather_witnesses</b></td>
+<td class="t">agent</td>
+<td class="ok">passed</td>
+<td class="num">3</td>
+<td class="num">27</td>
+<td class="num">3916493</td>
+</tr><tr>
+<td><span class="dot ok"></span><b>witness_gate</b></td>
+<td class="t">gate</td>
+<td class="ok">passed</td>
+<td class="num">1</td>
+<td class="num">0</td>
+<td class="num"></td>
+</tr><tr>
+<td><span class="dot ok"></span><b>adjudicate</b></td>
+<td class="t">agent</td>
+<td class="ok">passed</td>
+<td class="num">1</td>
+<td class="num">0</td>
+<td class="num">244544</td>
+</tr><tr>
+<td><span class="dot ok"></span><b>citation_gate</b></td>
+<td class="t">gate</td>
+<td class="ok">passed</td>
+<td class="num">1</td>
+<td class="num">0</td>
+<td class="num"></td>
+</tr><tr>
+<td><span class="dot ok"></span><b>propose_remediation</b></td>
+<td class="t">agent</td>
+<td class="ok">passed</td>
+<td class="num">1</td>
+<td class="num">1</td>
+<td class="num">199490</td>
+</tr><tr>
+<td><span class="dot ok"></span><b>human_approval</b> <span class="w">write</span></td>
+<td class="t">human</td>
+<td class="ok">passed</td>
+<td class="num">1</td>
+<td class="num">0</td>
+<td class="num"></td>
+</tr><tr>
+<td><span class="dot ok"></span><b>write_back</b> <span class="w">write</span></td>
+<td class="t">tool</td>
+<td class="ok">passed</td>
+<td class="num">1</td>
+<td class="num">0</td>
+<td class="num"></td>
+</tr><tr>
+<td><span class="dot muted"></span><b>report</b></td>
+<td class="t">transform</td>
+<td class="muted">not reached</td>
+<td class="num">0</td>
+<td class="num">0</td>
+<td class="num"></td>
+</tr></tbody></table></div>
+
+<h2>Witness ledger</h2>
+<div class="tw"><table>
+<thead><tr><th>id</th><th>Claim</th><th>Source</th><th>Supports</th><th>Refutes</th></tr></thead>
+<tbody><tr>
+<td class="num">e1</td>
+<td>In DataHub the dataset witnessgraph.marts.nightly_orders_snapshot declares no freshness/staleness assertion: its entity record contains only health INCIDENTS=PASS and relatedDocuments total 0, with no assertion, threshold, or evaluation-window field.</td>
+<td class="t">datahub_assertion<br><span class="ref">urn:li:dataset:(urn:li:dataPlatform:dbt,witnessgraph.marts.nightly_orders_snap</span></td>
+<td class="num">-</td>
+<td class="num">h1</td>
+</tr><tr>
+<td class="num">e2</td>
+<td>The tag urn:li:tag:root-cause:freshness_window_too_wide exists as a bare catalog entity (properties.name &#x27;root-cause:freshness_window_too_wide&#x27;) but is not attached to nightly_orders_snapshot — neither the dataset&#x27;s assertion record nor its schema record lists any globalTags referencing it.</td>
+<td class="t">datahub_assertion<br><span class="ref">urn:li:tag:root-cause:freshness_window_too_wide</span></td>
+<td class="num">-</td>
+<td class="num">h1</td>
+</tr><tr>
+<td class="num">e3</td>
+<td>The writing job nightly_snapshot_job&#x27;s only DataHub health signal is INCIDENTS=PASS, which is job-incident health rather than a freshness/staleness verdict, so &#x27;PASS&#x27; here does not represent a freshness check evaluating the table as fresh.</td>
+<td class="t">datahub_assertion<br><span class="ref">urn:li:dataJob:(urn:li:dataFlow:(airflow,witnessgraph,PROD),nightly_snapshot_j</span></td>
+<td class="num">-</td>
+<td class="num">-</td>
+</tr><tr>
+<td class="num">e4</td>
+<td>datahub.schema for nightly_orders_snapshot returns zero schema fields (totalFields 0) and an entity record with no globalTags and no assertion, independently corroborating that no freshness column, check, or too-wide-window instrument is registered on the dataset.</td>
+<td class="t">datahub_schema<br><span class="ref">urn:li:dataset:(urn:li:dataPlatform:dbt,witnessgraph.marts.nightly_orders_snap</span></td>
+<td class="num">-</td>
+<td class="num">h1</td>
+</tr><tr>
+<td class="num">e21</td>
+<td>The metric_definition_history table contains exactly one row (metric &#x27;active_users_daily&#x27;, version 1, day 1) and no row that defines or redefines any freshness metric for nightly_orders_snapshot within days 1-36.</td>
+<td class="t">warehouse_query<br><span class="ref">warehouse://MTI-004/metric_definition_history</span></td>
+<td class="num">-</td>
+<td class="num">h3</td>
+</tr><tr>
+<td class="num">e22</td>
+<td>The DataHub record for witnessgraph.marts.nightly_orders_snapshot declares no freshness assertion/check; its only freshness-related statement is the static description &#x27;Refreshed every 24 hours&#x27; and its health shows only INCIDENTS=PASS.</td>
+<td class="t">datahub_assertion<br><span class="ref">urn:li:dataset:(urn:li:dataPlatform:dbt,witnessgraph.marts.nightly_orders_snap</span></td>
+<td class="num">-</td>
+<td class="num">h3</td>
+</tr><tr>
+<td class="num">e23</td>
+<td>In nightly_orders_snapshot, written_at_day equals day in every one of the 27 returned rows (days 1-18 present, then only even days 20-36), so the load/run-write column and the business-day column are numerically identical.</td>
+<td class="t">warehouse_query<br><span class="ref">warehouse://MTI-004/nightly_orders_snapshot</span></td>
+<td class="num">-</td>
+<td class="num">h3</td>
+</tr><tr>
+<td class="num">e24</td>
+<td>nightly_orders_snapshot is a table carrying a written_at_day column commented &#x27;which run wrote this row&#x27;, an INTEGER day marker (not a CURRENT_TIMESTAMP-populated column).</td>
+<td class="t">warehouse_query<br><span class="ref">warehouse://MTI-004/nightly_orders_snapshot</span></td>
+<td class="num">h3</td>
+<td class="num">-</td>
+</tr><tr>
+<td class="num">e25</td>
+<td>release_deploy_log&#x27;s only in-window entries are product-feature deploys (quick_reorder day 12, price_alerts day 20); neither is a change to the freshness metric definition.</td>
+<td class="t">warehouse_query<br><span class="ref">warehouse://MTI-004/release_deploy_log</span></td>
+<td class="num">-</td>
+<td class="num">h3</td>
+</tr><tr>
+<td class="num">e26</td>
+<td>schema_migration_log&#x27;s only entry is a CREATE INDEX on orders(customer_code) at day 2, with no freshness/metric definition change recorded in the window.</td>
+<td class="t">warehouse_query<br><span class="ref">warehouse://MTI-004/schema_migration_log</span></td>
+<td class="num">-</td>
+<td class="num">h3</td>
+</tr><tr>
+<td class="num">e11</td>
+<td>The ingest_job_runs table records only run_id, job, day, status (ok|missing), and rows_written, with no completion-timestamp, duration, or end-time column.</td>
+<td class="t">warehouse_query<br><span class="ref">urn:li:dataJob:(urn:li:dataFlow:(airflow,witnessgraph,PROD),nightly_snapshot_j</span></td>
+<td class="num">-</td>
+<td class="num">h2</td>
+</tr><tr>
+<td class="num">e12</td>
+<td>nightly_snapshot_job&#x27;s recorded run status is &#x27;ok&#x27; for days 1-18 and then alternates &#x27;missing&#x27; on every odd day 19-35 and &#x27;ok&#x27; on every even day 20-36.</td>
+<td class="t">warehouse_query<br><span class="ref">urn:li:dataJob:(urn:li:dataFlow:(airflow,witnessgraph,PROD),nightly_snapshot_j</span></td>
+<td class="num">-</td>
+<td class="num">h2</td>
+</tr><tr>
+<td class="num">e13</td>
+<td>nightly_orders_snapshot has a row for every day 1-18 and every even day 20-36 but no row for any odd day 19-35, and every existing row has written_at_day equal to its day.</td>
+<td class="t">warehouse_query<br><span class="ref">urn:li:dataset:(urn:li:dataPlatform:dbt,witnessgraph.marts.nightly_orders_snap</span></td>
+<td class="num">-</td>
+<td class="num">h2</td>
+</tr><tr>
+<td class="num">e14</td>
+<td>The DataHub record for nightly_orders_snapshot returns only health INCIDENTS=PASS and description &#x27;Nightly snapshot of orders. Refreshed every 24 hours&#x27;, with no freshness/staleness assertion object or threshold present.</td>
+<td class="t">datahub_assertion<br><span class="ref">urn:li:dataset:(urn:li:dataPlatform:dbt,witnessgraph.marts.nightly_orders_snap</span></td>
+<td class="num">h1</td>
+<td class="num">h2</td>
+</tr><tr>
+<td class="num">e15</td>
+<td>DataHub records zero downstream consumers for nightly_orders_snapshot (DOWNSTREAM lineage total = 0).</td>
+<td class="t">datahub_lineage<br><span class="ref">urn:li:dataset:(urn:li:dataPlatform:dbt,witnessgraph.marts.nightly_orders_snap</span></td>
+<td class="num">-</td>
+<td class="num">h2</td>
+</tr><tr>
+<td class="num">e16</td>
+<td>metric_definition_history contains a single row (version 1, day 1, active_users_daily) and no freshness-metric edit for nightly_orders_snapshot within days 1-36.</td>
+<td class="t">warehouse_query<br><span class="ref">urn:li:dataset:(urn:li:dataPlatform:dbt,witnessgraph.marts.nightly_orders_snap</span></td>
+<td class="num">-</td>
+<td class="num">h3</td>
+</tr></tbody></table></div>
+
+<p class="sub" style="margin-top:30px">This page is built from the run ledger alone. It never reads the agent's own summary of what it did.</p>
+</div></body></html>

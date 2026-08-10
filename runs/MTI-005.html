@@ -1,0 +1,221 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Witness Graph run · MTI-005</title>
+<style>
+:root{--bg:#fff;--fg:#16181d;--mut:#666;--line:#e4e7eb;--soft:#f7f8fa;
+--ok:#1a7048;--bad:#b3253a;--warn:#a8541b;--mono:ui-monospace,Menlo,Consolas,monospace}
+@media(prefers-color-scheme:dark){:root{--bg:#0f1115;--fg:#e6e8ec;--mut:#98a0ad;--line:#262a32;
+--soft:#161920;--ok:#5cc98e;--bad:#f0798c;--warn:#e0a06a}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.7 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+.w{max-width:1000px;margin:0 auto;padding:40px 20px 80px}
+h1{font-size:24px;margin:0 0 4px;letter-spacing:-.02em}
+h2{font-size:17px;margin:38px 0 10px;padding-top:18px;border-top:1px solid var(--line)}
+.sub{color:var(--mut);font-size:13px;margin-bottom:24px}
+table{border-collapse:collapse;width:100%;font-size:13.5px}
+.tw{overflow-x:auto;border:1px solid var(--line);border-radius:9px}
+th,td{text-align:left;padding:9px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+th{background:var(--soft);font-weight:700;white-space:nowrap}
+tr:last-child td{border-bottom:none}
+.num{font-family:var(--mono);white-space:nowrap}
+.t{color:var(--mut);font-size:12.5px}
+.ref{font-family:var(--mono);font-size:11px;color:var(--mut);word-break:break-all}
+.dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:7px;background:var(--mut)}
+.dot.ok{background:var(--ok)}.dot.bad{background:var(--bad)}.dot.warn{background:var(--warn)}
+.ok{color:var(--ok)}.bad{color:var(--bad)}.warn{color:var(--warn)}.muted{color:var(--mut)}
+span.w{font-size:10.5px;border:1px solid var(--warn);color:var(--warn);border-radius:99px;padding:1px 6px;margin-left:6px}
+.alert{display:flex;gap:12px;align-items:baseline;border:1px solid var(--line);border-left-width:4px;
+border-radius:0 8px 8px 0;padding:11px 15px;margin:9px 0;background:var(--soft);font-size:14px}
+.alert.bad{border-left-color:var(--bad)}.alert.ok{border-left-color:var(--ok)}.alert.warn{border-left-color:var(--warn)}
+.alert b{min-width:110px} .alert span{color:var(--mut)}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:11px;margin:16px 0}
+.card{border:1px solid var(--line);border-radius:9px;padding:13px 15px;background:var(--soft)}
+.card .k{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--mut);font-weight:700}
+.card .v{font-size:18px;font-weight:700;font-family:var(--mono);margin-top:3px}
+.card .n{font-size:12px;color:var(--mut);font-family:var(--mono)}
+</style></head><body><div class="w">
+<h1>Shipped feature, zero usage</h1>
+<div class="sub">MTI-005 · graph metric-truth · 14 ledger records</div>
+
+<h2>What this run caught</h2>
+<div class="alert ok"><b>No violations</b><span>Fabricated citations, unapproved effects and tool violations are all zero</span></div>
+
+<h2>Adjudication</h2>
+
+<div class="grid">
+  <div class="card"><div class="k">Agent verdict</div><div class="v">customer_behavior</div>
+    <div class="n">rollout_flag_never_enabled</div></div>
+  <div class="card"><div class="k">Answer key</div><div class="v">instrument_failure</div>
+    <div class="n">below_fold_unreachable</div></div>
+  <div class="card"><div class="k">Outcome</div>
+    <div class="v bad">wrong</div>
+    <div class="n">13 of 13 citations resolve</div></div>
+</div>
+
+<h2>Graph execution</h2>
+<div class="tw"><table>
+<thead><tr><th>Node</th><th>Kind</th><th>State</th><th>Records</th><th>Tools</th><th>ms</th></tr></thead>
+<tbody><tr>
+<td><span class="dot ok"></span><b>intake</b></td>
+<td class="t">transform</td>
+<td class="ok">passed</td>
+<td class="num">1</td>
+<td class="num">0</td>
+<td class="num"></td>
+</tr><tr>
+<td><span class="dot ok"></span><b>map_terrain</b></td>
+<td class="t">agent</td>
+<td class="ok">passed</td>
+<td class="num">1</td>
+<td class="num">9</td>
+<td class="num">376942</td>
+</tr><tr>
+<td><span class="dot ok"></span><b>hypothesize</b></td>
+<td class="t">agent</td>
+<td class="ok">passed</td>
+<td class="num">3</td>
+<td class="num">0</td>
+<td class="num">199238</td>
+</tr><tr>
+<td><span class="dot ok"></span><b>gather_witnesses</b></td>
+<td class="t">agent</td>
+<td class="ok">passed</td>
+<td class="num">3</td>
+<td class="num">22</td>
+<td class="num">2703543</td>
+</tr><tr>
+<td><span class="dot ok"></span><b>witness_gate</b></td>
+<td class="t">gate</td>
+<td class="ok">passed</td>
+<td class="num">1</td>
+<td class="num">0</td>
+<td class="num"></td>
+</tr><tr>
+<td><span class="dot ok"></span><b>adjudicate</b></td>
+<td class="t">agent</td>
+<td class="ok">passed</td>
+<td class="num">1</td>
+<td class="num">0</td>
+<td class="num">246650</td>
+</tr><tr>
+<td><span class="dot ok"></span><b>citation_gate</b></td>
+<td class="t">gate</td>
+<td class="ok">passed</td>
+<td class="num">1</td>
+<td class="num">0</td>
+<td class="num"></td>
+</tr><tr>
+<td><span class="dot ok"></span><b>propose_remediation</b></td>
+<td class="t">agent</td>
+<td class="ok">passed</td>
+<td class="num">1</td>
+<td class="num">2</td>
+<td class="num">233932</td>
+</tr><tr>
+<td><span class="dot ok"></span><b>human_approval</b> <span class="w">write</span></td>
+<td class="t">human</td>
+<td class="ok">passed</td>
+<td class="num">1</td>
+<td class="num">0</td>
+<td class="num"></td>
+</tr><tr>
+<td><span class="dot ok"></span><b>write_back</b> <span class="w">write</span></td>
+<td class="t">tool</td>
+<td class="ok">passed</td>
+<td class="num">1</td>
+<td class="num">0</td>
+<td class="num"></td>
+</tr><tr>
+<td><span class="dot muted"></span><b>report</b></td>
+<td class="t">transform</td>
+<td class="muted">not reached</td>
+<td class="num">0</td>
+<td class="num">0</td>
+<td class="num"></td>
+</tr></tbody></table></div>
+
+<h2>Witness ledger</h2>
+<div class="tw"><table>
+<thead><tr><th>id</th><th>Claim</th><th>Source</th><th>Supports</th><th>Refutes</th></tr></thead>
+<tbody><tr>
+<td class="num">e1</td>
+<td>The feature_adoption view&#x27;s client_events column is computed solely as a correlated subquery COUNT(*) over feature_usage_events where u.feature = d.feature AND u.source = &#x27;client_event&#x27;, with the feature/day list supplied FROM release_deploy_log — this is the sole counting path h1 concerns.</td>
+<td class="t">warehouse_query<br><span class="ref">urn:li:dataset:(urn:li:dataPlatform:dbt,witnessgraph.marts.feature_adoption,PR</span></td>
+<td class="num">-</td>
+<td class="num">-</td>
+</tr><tr>
+<td class="num">e2</td>
+<td>In feature_usage_events, &#x27;price_alerts&#x27; has exactly one row across all days and all sources — source=&#x27;deploy_marker&#x27; on day 20 only — and ZERO rows with source=&#x27;client_event&#x27; or any other source, so the view&#x27;s WHERE u.source=&#x27;client_event&#x27; filter has no real price_alerts client-usage rows to discard.</td>
+<td class="t">warehouse_query<br><span class="ref">urn:li:dataset:(urn:li:dataPlatform:postgres,witnessgraph.raw.feature_usage_ev</span></td>
+<td class="num">h2, h3</td>
+<td class="num">h1</td>
+</tr><tr>
+<td class="num">e3</td>
+<td>The identical source=&#x27;client_event&#x27; filter yields client_events=825 for the live feature quick_reorder (days 12–36) while yielding 0 for price_alerts, demonstrating the filter literal matches real emitted client-usage rows and is not the cause of price_alerts&#x27; zero.</td>
+<td class="t">warehouse_query<br><span class="ref">urn:li:dataset:(urn:li:dataPlatform:dbt,witnessgraph.marts.feature_adoption,PR</span></td>
+<td class="num">-</td>
+<td class="num">h1</td>
+</tr><tr>
+<td class="num">e4</td>
+<td>feature_usage_events.source takes exactly the documented pair {client_event, deploy_marker} and no variant client literal (e.g. &#x27;client_event_v2&#x27;, &#x27;app_client&#x27;) is documented or actually present, so there is no alternate source literal carrying discarded price_alerts usage and no differently-keyed price_alerts feature (only &#x27;price_alerts&#x27; and &#x27;quick_reorder&#x27; feature keys exist).</td>
+<td class="t">warehouse_query<br><span class="ref">urn:li:dataset:(urn:li:dataPlatform:postgres,witnessgraph.raw.feature_usage_ev</span></td>
+<td class="num">-</td>
+<td class="num">h1</td>
+</tr><tr>
+<td class="num">e21</td>
+<td>The marts.feature_adoption view derives client_events solely as a correlated COUNT(*) over feature_usage_events rows WHERE source=&#x27;client_event&#x27;, keyed by feature; release_deploy_log only supplies the feature/day list via the FROM clause.</td>
+<td class="t">warehouse_query<br><span class="ref">urn:li:dataset:(urn:li:dataPlatform:dbt,witnessgraph.marts.feature_adoption,PR</span></td>
+<td class="num">-</td>
+<td class="num">-</td>
+</tr><tr>
+<td class="num">e22</td>
+<td>In feature_usage_events, price_alerts has exactly one row (source=&#x27;deploy_marker&#x27;, day 20) and zero rows under any other source value, whereas quick_reorder has 825 rows all source=&#x27;client_event&#x27; spanning days 12-36.</td>
+<td class="t">warehouse_query<br><span class="ref">urn:li:dataset:(urn:li:dataPlatform:postgres,witnessgraph.raw.feature_usage_ev</span></td>
+<td class="num">-</td>
+<td class="num">h1</td>
+</tr><tr>
+<td class="num">e23</td>
+<td>Across days 20-36, feature_usage_events contains quick_reorder client_event rows on every single day (26-40 per day) but zero price_alerts rows of any source after the lone day-20 deploy_marker.</td>
+<td class="t">warehouse_query<br><span class="ref">urn:li:dataset:(urn:li:dataPlatform:postgres,witnessgraph.raw.feature_usage_ev</span></td>
+<td class="num">h2</td>
+<td class="num">h3</td>
+</tr><tr>
+<td class="num">e24</td>
+<td>release_deploy_log records price_alerts as shipped on day 20 (deploy_id D-0020, shipped=1) and is one of only two deploy rows, so the feature_adoption view does emit a price_alerts row whose client_events evaluates to a genuine 0 rather than a missing row.</td>
+<td class="t">warehouse_query<br><span class="ref">urn:li:dataset:(urn:li:dataPlatform:postgres,witnessgraph.raw.release_deploy_l</span></td>
+<td class="num">-</td>
+<td class="num">-</td>
+</tr><tr>
+<td class="num">e11</td>
+<td>release_deploy_log records price_alerts as deployed on day 20 with shipped=1 (quick_reorder on day 12, shipped=1), so the price_alerts deploy demonstrably landed inside the day 20-36 window.</td>
+<td class="t">warehouse_query<br><span class="ref">urn:li:dataset:(urn:li:dataPlatform:postgres,witnessgraph.raw.release_deploy_l</span></td>
+<td class="num">h2</td>
+<td class="num">-</td>
+</tr><tr>
+<td class="num">e12</td>
+<td>In feature_usage_events, price_alerts has exactly ONE row (source=&#x27;deploy_marker&#x27;, day 20) and ZERO rows with source=&#x27;client_event&#x27; under any day or any other source literal, while quick_reorder has 825 source=&#x27;client_event&#x27; rows spanning days 12-36.</td>
+<td class="t">warehouse_query<br><span class="ref">urn:li:dataset:(urn:li:dataPlatform:postgres,witnessgraph.raw.feature_usage_ev</span></td>
+<td class="num">h2, h3</td>
+<td class="num">h1</td>
+</tr><tr>
+<td class="num">e13</td>
+<td>Filtered to source=&#x27;client_event&#x27; over days 20-36, feature_usage_events returns 576 rows for quick_reorder and no row at all for price_alerts, showing the client-usage counting path and ingest are demonstrably healthy for a peer feature in the exact window while price_alerts contributes nothing.</td>
+<td class="t">warehouse_query<br><span class="ref">urn:li:dataset:(urn:li:dataPlatform:postgres,witnessgraph.raw.feature_usage_ev</span></td>
+<td class="num">h2</td>
+<td class="num">-</td>
+</tr><tr>
+<td class="num">e14</td>
+<td>The feature_adoption view derives client_events solely as COUNT(*) of feature_usage_events where u.feature=d.feature AND u.source=&#x27;client_event&#x27;, with the feature/day list coming from release_deploy_log, so price_alerts&#x27;s reported usage is exactly its count of source=&#x27;client_event&#x27; rows — which is zero — meaning the metric faithfully reflects the raw rows rather than mis-computing.</td>
+<td class="t">datahub_schema<br><span class="ref">urn:li:dataset:(urn:li:dataPlatform:dbt,witnessgraph.marts.feature_adoption,PR</span></td>
+<td class="num">h2</td>
+<td class="num">-</td>
+</tr><tr>
+<td class="num">e15</td>
+<td>No candidate refuter of h2 is present in the observable data: the only price_alerts row in the window is a system-written source=&#x27;deploy_marker&#x27; (not a user client_event), so h2&#x27;s refutation criterion (&#x27;one or more price-alerts rows showing users reached the feature&#x27;) is NOT met; conversely h2&#x27;s decisive confirmer — the rollout/feature-flag exposure config — is unobservable because the warehouse catalog exposes no flag/rollout/exposure relation.</td>
+<td class="t">warehouse_query<br><span class="ref">urn:li:dataset:(urn:li:dataPlatform:postgres,witnessgraph.raw.feature_usage_ev</span></td>
+<td class="num">h2, h3</td>
+<td class="num">-</td>
+</tr></tbody></table></div>
+
+<p class="sub" style="margin-top:30px">This page is built from the run ledger alone. It never reads the agent's own summary of what it did.</p>
+</div></body></html>

@@ -1,0 +1,239 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Witness Graph run · MTI-009</title>
+<style>
+:root{--bg:#fff;--fg:#16181d;--mut:#666;--line:#e4e7eb;--soft:#f7f8fa;
+--ok:#1a7048;--bad:#b3253a;--warn:#a8541b;--mono:ui-monospace,Menlo,Consolas,monospace}
+@media(prefers-color-scheme:dark){:root{--bg:#0f1115;--fg:#e6e8ec;--mut:#98a0ad;--line:#262a32;
+--soft:#161920;--ok:#5cc98e;--bad:#f0798c;--warn:#e0a06a}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.7 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+.w{max-width:1000px;margin:0 auto;padding:40px 20px 80px}
+h1{font-size:24px;margin:0 0 4px;letter-spacing:-.02em}
+h2{font-size:17px;margin:38px 0 10px;padding-top:18px;border-top:1px solid var(--line)}
+.sub{color:var(--mut);font-size:13px;margin-bottom:24px}
+table{border-collapse:collapse;width:100%;font-size:13.5px}
+.tw{overflow-x:auto;border:1px solid var(--line);border-radius:9px}
+th,td{text-align:left;padding:9px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+th{background:var(--soft);font-weight:700;white-space:nowrap}
+tr:last-child td{border-bottom:none}
+.num{font-family:var(--mono);white-space:nowrap}
+.t{color:var(--mut);font-size:12.5px}
+.ref{font-family:var(--mono);font-size:11px;color:var(--mut);word-break:break-all}
+.dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:7px;background:var(--mut)}
+.dot.ok{background:var(--ok)}.dot.bad{background:var(--bad)}.dot.warn{background:var(--warn)}
+.ok{color:var(--ok)}.bad{color:var(--bad)}.warn{color:var(--warn)}.muted{color:var(--mut)}
+span.w{font-size:10.5px;border:1px solid var(--warn);color:var(--warn);border-radius:99px;padding:1px 6px;margin-left:6px}
+.alert{display:flex;gap:12px;align-items:baseline;border:1px solid var(--line);border-left-width:4px;
+border-radius:0 8px 8px 0;padding:11px 15px;margin:9px 0;background:var(--soft);font-size:14px}
+.alert.bad{border-left-color:var(--bad)}.alert.ok{border-left-color:var(--ok)}.alert.warn{border-left-color:var(--warn)}
+.alert b{min-width:110px} .alert span{color:var(--mut)}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:11px;margin:16px 0}
+.card{border:1px solid var(--line);border-radius:9px;padding:13px 15px;background:var(--soft)}
+.card .k{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--mut);font-weight:700}
+.card .v{font-size:18px;font-weight:700;font-family:var(--mono);margin-top:3px}
+.card .n{font-size:12px;color:var(--mut);font-family:var(--mono)}
+</style></head><body><div class="w">
+<h1>Active users jumped overnight with no release</h1>
+<div class="sub">MTI-009 · graph metric-truth · 14 ledger records</div>
+
+<h2>What this run caught</h2>
+<div class="alert ok"><b>No violations</b><span>Fabricated citations, unapproved effects and tool violations are all zero</span></div>
+
+<h2>Adjudication</h2>
+
+<div class="grid">
+  <div class="card"><div class="k">Agent verdict</div><div class="v">instrument_failure</div>
+    <div class="n">bot_traffic_mixed</div></div>
+  <div class="card"><div class="k">Answer key</div><div class="v">definition_change</div>
+    <div class="n">metric_definition_widened</div></div>
+  <div class="card"><div class="k">Outcome</div>
+    <div class="v bad">wrong</div>
+    <div class="n">14 of 14 citations resolve</div></div>
+</div>
+
+<h2>Graph execution</h2>
+<div class="tw"><table>
+<thead><tr><th>Node</th><th>Kind</th><th>State</th><th>Records</th><th>Tools</th><th>ms</th></tr></thead>
+<tbody><tr>
+<td><span class="dot ok"></span><b>intake</b></td>
+<td class="t">transform</td>
+<td class="ok">passed</td>
+<td class="num">1</td>
+<td class="num">0</td>
+<td class="num"></td>
+</tr><tr>
+<td><span class="dot ok"></span><b>map_terrain</b></td>
+<td class="t">agent</td>
+<td class="ok">passed</td>
+<td class="num">1</td>
+<td class="num">10</td>
+<td class="num">680527</td>
+</tr><tr>
+<td><span class="dot ok"></span><b>hypothesize</b></td>
+<td class="t">agent</td>
+<td class="ok">passed</td>
+<td class="num">3</td>
+<td class="num">0</td>
+<td class="num">255505</td>
+</tr><tr>
+<td><span class="dot ok"></span><b>gather_witnesses</b></td>
+<td class="t">agent</td>
+<td class="ok">passed</td>
+<td class="num">3</td>
+<td class="num">24</td>
+<td class="num">3697026</td>
+</tr><tr>
+<td><span class="dot ok"></span><b>witness_gate</b></td>
+<td class="t">gate</td>
+<td class="ok">passed</td>
+<td class="num">1</td>
+<td class="num">0</td>
+<td class="num"></td>
+</tr><tr>
+<td><span class="dot ok"></span><b>adjudicate</b></td>
+<td class="t">agent</td>
+<td class="ok">passed</td>
+<td class="num">1</td>
+<td class="num">0</td>
+<td class="num">141376</td>
+</tr><tr>
+<td><span class="dot ok"></span><b>citation_gate</b></td>
+<td class="t">gate</td>
+<td class="ok">passed</td>
+<td class="num">1</td>
+<td class="num">0</td>
+<td class="num"></td>
+</tr><tr>
+<td><span class="dot ok"></span><b>propose_remediation</b></td>
+<td class="t">agent</td>
+<td class="ok">passed</td>
+<td class="num">1</td>
+<td class="num">1</td>
+<td class="num">174846</td>
+</tr><tr>
+<td><span class="dot ok"></span><b>human_approval</b> <span class="w">write</span></td>
+<td class="t">human</td>
+<td class="ok">passed</td>
+<td class="num">1</td>
+<td class="num">0</td>
+<td class="num"></td>
+</tr><tr>
+<td><span class="dot ok"></span><b>write_back</b> <span class="w">write</span></td>
+<td class="t">tool</td>
+<td class="ok">passed</td>
+<td class="num">1</td>
+<td class="num">0</td>
+<td class="num"></td>
+</tr><tr>
+<td><span class="dot muted"></span><b>report</b></td>
+<td class="t">transform</td>
+<td class="muted">not reached</td>
+<td class="num">0</td>
+<td class="num">0</td>
+<td class="num"></td>
+</tr></tbody></table></div>
+
+<h2>Witness ledger</h2>
+<div class="tw"><table>
+<thead><tr><th>id</th><th>Claim</th><th>Source</th><th>Supports</th><th>Refutes</th></tr></thead>
+<tbody><tr>
+<td class="num">e21</td>
+<td>The day-24 step in active_users_daily is entirely attributable to is_automated=1 (bot) customer_codes; the is_automated=0 (human) distinct-code count on day 24 (205) stays within the day 1–23 baseline (~140–210).</td>
+<td class="t">warehouse_query<br><span class="ref">urn:li:dataset:(urn:li:dataPlatform:postgres,witnessgraph.raw.web_sessions,PRO</span></td>
+<td class="num">h1, h2</td>
+<td class="num">h3</td>
+</tr><tr>
+<td class="num">e22</td>
+<td>Every distinct customer_code whose first-ever appearance is the step day (day 24) is is_automated=1; zero net-new human customer_codes appear on day 24, and across days 21–30 net-new codes appear only on days 24 and 25.</td>
+<td class="t">warehouse_query<br><span class="ref">urn:li:dataset:(urn:li:dataPlatform:postgres,witnessgraph.raw.web_sessions,PRO</span></td>
+<td class="num">h1, h2</td>
+<td class="num">h3</td>
+</tr><tr>
+<td class="num">e23</td>
+<td>The day-24 net-new customer_codes carry a synthetic/batch signature, not human traits: 100% is_automated=1, exactly one session per code, distributed evenly across four channels with only four distinct browser versions each.</td>
+<td class="t">warehouse_query<br><span class="ref">urn:li:dataset:(urn:li:dataPlatform:postgres,witnessgraph.raw.web_sessions,PRO</span></td>
+<td class="num">h1, h2</td>
+<td class="num">h3</td>
+</tr><tr>
+<td class="num">e24</td>
+<td>Recomputing active users over the same day-24 rows with automated sessions excluded (is_automated=0, the bot-exclusion rule) reproduces the pre-jump baseline, showing the human population did not actually change on the step day.</td>
+<td class="t">warehouse_query<br><span class="ref">urn:li:dataset:(urn:li:dataPlatform:postgres,witnessgraph.raw.web_sessions,PRO</span></td>
+<td class="num">h1, h2</td>
+<td class="num">h3</td>
+</tr><tr>
+<td class="num">e25</td>
+<td>raw.web_sessions exposes is_automated as the automated/human discriminator, and its own DataHub description notes the flag is not populated by every producer.</td>
+<td class="t">datahub_schema<br><span class="ref">urn:li:dataset:(urn:li:dataPlatform:postgres,witnessgraph.raw.web_sessions,PRO</span></td>
+<td class="num">-</td>
+<td class="num">-</td>
+</tr><tr>
+<td class="num">e1</td>
+<td>The active_users_daily view computes COUNT(DISTINCT customer_code) FROM web_sessions GROUP BY day with no is_automated predicate and no reference to metric_definition_history, so its implementation never gates on the bot flag.</td>
+<td class="t">datahub_schema<br><span class="ref">urn:li:dataset:(urn:li:dataPlatform:dbt,witnessgraph.marts.active_users_daily,</span></td>
+<td class="num">h1</td>
+<td class="num">h2</td>
+</tr><tr>
+<td class="num">e2</td>
+<td>metric_definition_history records a v1 (day 1) definition of active_users_daily as &#x27;distinct customers with at least one non-automated session&#x27; and a v2 (day 24) definition of &#x27;distinct customers with any session, including passive_view&#x27;, i.e. the bot-exclusion rule was edited out exactly on the step day.</td>
+<td class="t">warehouse_query<br><span class="ref">urn:li:dataset:(urn:li:dataPlatform:postgres,witnessgraph.raw.metric_definitio</span></td>
+<td class="num">h1, h2</td>
+<td class="num">h3</td>
+</tr><tr>
+<td class="num">e3</td>
+<td>web_sessions carries zero is_automated=1 sessions on days 1-23 and 142 is_automated=1 sessions on day 24, so automated traffic first enters the substrate on the step day.</td>
+<td class="t">warehouse_query<br><span class="ref">urn:li:dataset:(urn:li:dataPlatform:postgres,witnessgraph.raw.web_sessions,PRO</span></td>
+<td class="num">h1</td>
+<td class="num">h3</td>
+</tr><tr>
+<td class="num">e4</td>
+<td>On day 24 every one of the 142 is_automated=1 customer_codes is brand-new (unseen on any day &lt;24), while all 205 is_automated=0 codes were already present before day 24 (0 new), so the entire net-new distinct-code surplus is automated.</td>
+<td class="t">warehouse_query<br><span class="ref">urn:li:dataset:(urn:li:dataPlatform:postgres,witnessgraph.raw.web_sessions,PRO</span></td>
+<td class="num">h1</td>
+<td class="num">h3</td>
+</tr><tr>
+<td class="num">e5</td>
+<td>Recomputing the count under the v1 &#x27;non-automated&#x27; rule (is_automated=0 only) leaves day 24 at 205, inside the day 22-23 baseline (210, 197), so removing automated sessions collapses the ~150-user jump entirely.</td>
+<td class="t">warehouse_query<br><span class="ref">urn:li:dataset:(urn:li:dataPlatform:postgres,witnessgraph.raw.web_sessions,PRO</span></td>
+<td class="num">h1</td>
+<td class="num">h3</td>
+</tr><tr>
+<td class="num">e6</td>
+<td>The active_users_daily output itself steps from 197 (day 23) to 347 (day 24) and holds at an elevated level (241-347) through day 36, so the disputed number&#x27;s discontinuity is dated to day 24, coinciding with automation onset (e3) and the definition edit (e2).</td>
+<td class="t">warehouse_query<br><span class="ref">urn:li:dataset:(urn:li:dataPlatform:dbt,witnessgraph.marts.active_users_daily,</span></td>
+<td class="num">h1</td>
+<td class="num">-</td>
+</tr><tr>
+<td class="num">e11</td>
+<td>metric_definition_history records a semantic, broadening redefinition of active_users_daily effective on day 24: v1 (day 1) = &#x27;distinct customers with at least one non-automated session&#x27;, v2 (day 24) = &#x27;distinct customers with any session, including passive_view&#x27;.</td>
+<td class="t">warehouse_query<br><span class="ref">urn:li:dataset:(urn:li:dataPlatform:postgres,witnessgraph.raw.metric_definitio</span></td>
+<td class="num">h2</td>
+<td class="num">-</td>
+</tr><tr>
+<td class="num">e12</td>
+<td>active_users_daily steps discontinuously from 197 (day 23) to 347 (day 24) and stays elevated thereafter, so the single-day jump lands exactly on the day-24 metric_definition_history version-2 boundary.</td>
+<td class="t">warehouse_query<br><span class="ref">urn:li:dataset:(urn:li:dataPlatform:dbt,witnessgraph.marts.active_users_daily,</span></td>
+<td class="num">h2</td>
+<td class="num">h3</td>
+</tr><tr>
+<td class="num">e13</td>
+<td>The active_users_daily view is defined as COUNT(DISTINCT customer_code) FROM web_sessions GROUP BY day, with no is_automated filter and no reference to metric_definition_history, so the computation neither reads the definition store nor applies any bot-exclusion rule and its text is unchanged across the jump.</td>
+<td class="t">warehouse_query<br><span class="ref">urn:li:dataset:(urn:li:dataPlatform:dbt,witnessgraph.marts.active_users_daily,</span></td>
+<td class="num">h1</td>
+<td class="num">h2</td>
+</tr><tr>
+<td class="num">e14</td>
+<td>The entire day-24 increment in active_users_daily is automated sessions (142 distinct is_automated=1 codes appearing first on day 24, 0 on days 20-23) while human (is_automated=0) distinct codes stay flat (~205 vs ~197) and passive_view distinct codes are 0 on every day, so all_users = human + automated and the redefinition&#x27;s named addition (passive_view) contributes nothing.</td>
+<td class="t">warehouse_query<br><span class="ref">urn:li:dataset:(urn:li:dataPlatform:postgres,witnessgraph.raw.web_sessions,PRO</span></td>
+<td class="num">h1</td>
+<td class="num">h2, h3</td>
+</tr><tr>
+<td class="num">e15</td>
+<td>DataHub lineage lists raw.metric_definition_history as a 1-hop UPSTREAM of marts.active_users_daily, but the view DDL reads only web_sessions, so the definition-store link is a declared lineage edge with no computational path by which a definition edit reaches the number.</td>
+<td class="t">datahub_lineage<br><span class="ref">urn:li:dataset:(urn:li:dataPlatform:dbt,witnessgraph.marts.active_users_daily,</span></td>
+<td class="num">-</td>
+<td class="num">h2</td>
+</tr></tbody></table></div>
+
+<p class="sub" style="margin-top:30px">This page is built from the run ledger alone. It never reads the agent's own summary of what it did.</p>
+</div></body></html>
