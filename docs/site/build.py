@@ -30,6 +30,7 @@ sys.path.insert(0, str(ROOT / "harness"))
 
 import yaml  # noqa: E402
 import render_run  # noqa: E402
+import score  # noqa: E402
 
 REPO = "https://github.com/HDPark95/witness-graph"
 
@@ -38,7 +39,7 @@ def esc(x) -> str:
     return html.escape(str(x))
 
 
-def score(cases: pathlib.Path, runs: pathlib.Path) -> dict:
+def run_scorer(cases: pathlib.Path, runs: pathlib.Path) -> dict:
     """Shell out to the scorer rather than reimplementing it.
 
     Importing would let this file drift from what `score.py` actually does the
@@ -58,13 +59,47 @@ def score(cases: pathlib.Path, runs: pathlib.Path) -> dict:
 HEADLINE = [
     ("verdict_top1", "Verdict accuracy", "Did it name the right kind of failure"),
     ("root_cause_top1", "Root cause accuracy", "Did it name the specific fault"),
-    ("root_cause_lift_over_baseline", "Root cause lift", "Over the majority-class baseline"),
+    ("root_cause_lift_scored", "Root cause lift",
+     "Over the lazy agent on these same cases"),
     ("citation_precision", "Citation precision", "Cited evidence that exists in the ledger"),
     ("citation_recall", "Citation recall", "Of the evidence the answer key requires"),
     ("lucky_guess_rate", "Lucky guess rate", "Right answer, evidence never looked at"),
     ("unapproved_effects_total", "Unapproved effects", "Writes that skipped the approval gate"),
     ("disallowed_tool_calls_total", "Disallowed tool calls", "Calls the runtime refused and logged"),
 ]
+
+
+def restrict_lift(summary: dict, cases_dir: pathlib.Path, rows: list[dict]) -> dict:
+    """Recompute the lift against a baseline drawn from the cases that ran.
+
+    `score.py` deliberately takes its baseline from the whole corpus so that a
+    partial run cannot lower the bar it is measured against. That guards one
+    direction. It does not guard the other: when the cases that happen to have
+    run are all the majority class, the corpus-wide baseline is *easier* than
+    the sample, and the lift reads high for a reason that has nothing to do
+    with the agent.
+
+    So publish the honest comparison too, using the scorer's own baseline
+    function on the scored subset rather than a second implementation of it.
+    When every case has run the two agree and the caveat disappears by itself.
+    """
+    scored = []
+    for r in rows:
+        p = cases_dir / f"{r['case_id']}.json"
+        if p.exists():
+            scored.append(json.loads(p.read_text(encoding="utf-8")))
+    if not scored:
+        return {}
+    b = score.majority_class_baseline(scored)
+    return {
+        "baseline_accuracy_scored": b["baseline_accuracy"],
+        "baseline_root_cause_accuracy_scored": b["baseline_root_cause_accuracy"],
+        "lift_scored": round(summary.get("verdict_top1", 0.0)
+                             - b["baseline_accuracy"], 3),
+        "root_cause_lift_scored": round(summary.get("root_cause_top1", 0.0)
+                                        - b["baseline_root_cause_accuracy"], 3),
+        "scored_verdict_labels": sorted({c["ground_truth"]["verdict"] for c in scored}),
+    }
 
 
 def fmt(key: str, v) -> str:
@@ -101,6 +136,32 @@ def index_html(summary: dict, rows: list[dict]) -> str:
 </tr>""")
 
     n = summary.get("cases", len(rows))
+
+    # State the sample restriction where the numbers are, not in a footnote.
+    # It is generated from the data, so it cannot be left behind once the rest
+    # of the corpus runs.
+    missing = summary.get("cases_without_runs") or []
+    labels = summary.get("scored_verdict_labels") or []
+    caveat = ""
+    if missing:
+        one = len(labels) == 1
+        caveat = f"""<div class="note"><b>{len(rows)} of {len(rows) + len(missing)}
+cases have run, so read the lift with that in mind.</b>
+{'All of them carry the same verdict label, <code>' + esc(labels[0]) +
+ '</code>, which is also the most common label in the corpus. An agent that '
+ 'always guessed that label would score ' +
+ f"{summary.get('baseline_accuracy_scored', 0):.3f}"
+ ' on these same cases, so the verdict lift here is '
+ f"{summary.get('lift_scored', 0):+.3f}"
+ ' and the useful number is the root cause one.'
+ if one else
+ 'The lift card above compares against the lazy agent on these same cases, '
+ 'rather than against a baseline drawn from the whole corpus, which would be '
+ 'a comparison between two different samples.'}
+Against the full corpus the baseline is
+{summary.get('baseline_accuracy', 0):.3f} on the verdict and
+{summary.get('baseline_root_cause_accuracy', 0):.3f} on the root cause.</div>"""
+
     return f"""<!doctype html><html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Witness Graph &middot; run evidence</title>
@@ -135,6 +196,9 @@ tr:last-child td{{border-bottom:none}}
 pre{{background:var(--soft);border:1px solid var(--line);border-radius:9px;padding:14px 16px;
 overflow-x:auto;font-family:var(--mono);font-size:12.5px;line-height:1.65}}
 .foot{{margin-top:44px;padding-top:18px;border-top:1px solid var(--line);color:var(--mut);font-size:12.5px}}
+.note{{border:1px solid var(--line);border-left:3px solid var(--warn);border-radius:0 9px 9px 0;
+padding:13px 17px;margin:16px 0 0;font-size:13.5px;background:var(--soft)}}
+.note code{{font-family:var(--mono);font-size:12.5px}}
 </style></head><body><div class="w">
 
 <h1>Witness Graph</h1>
@@ -150,6 +214,7 @@ runtime wrote while the agent ran.</p>
 {n} committed run ledger(s), regenerated when this page was built. Nothing here is
 typed by hand.</p>
 <div class="grid">{''.join(cards)}</div>
+{caveat}
 
 <h2>The runs themselves</h2>
 <p>Each row opens the full run page: which of the eleven nodes fired, every tool call,
@@ -202,7 +267,7 @@ def main() -> int:
     a.out.mkdir(parents=True, exist_ok=True)
     graph = yaml.safe_load(a.graph.read_text(encoding="utf-8"))
 
-    result = score(a.cases, a.runs)
+    result = run_scorer(a.cases, a.runs)
     rows = sorted(result["per_case"], key=lambda r: r["case_id"])
 
     for r in rows:
@@ -212,6 +277,10 @@ def main() -> int:
         page = a.out / f"{cid}.html"
         page.write_text(render_run.build(graph, ledger, case), encoding="utf-8")
         print(f"  {cid}.html  {page.stat().st_size} bytes")
+
+    # Publish the like-for-like lift alongside the scorer's corpus-wide one, so
+    # summary.json carries both and the page is not the only place it exists.
+    result["summary"].update(restrict_lift(result["summary"], a.cases, rows))
 
     (a.out / "summary.json").write_text(
         json.dumps(result, indent=2) + "\n", encoding="utf-8")
